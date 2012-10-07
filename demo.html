@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>js++ demo</title>
+	
+	<style type="text/css">
+		* {
+			font-family: Calibri,Helvetia,sans-serif;
+		}
+
+		body {
+			padding:20px;
+			margin:0;
+		}
+	</style>
+
+	<script type="text/javascript" src="js++.js"></script>
+	<script type="text/javascript">
+
+	_DEBUG = false;
+	
+	
+	// classes
+
+	/**
+	* class A
+	*/
+	var A = Class(function(a){
+			_DEBUG && console.info('A::constructor('+Array.prototype.join.call(arguments)+')');
+			this.a = a;
+			
+			this.publicFunction = function(){console.info('A::publicFunction()');return this.a};
+	});
+
+	/**
+	* class B : A
+	* -> A::constructor (a)
+	*/
+	var B = Class(A).derived(function(b,a){
+			_DEBUG && console.info('B::constructor('+Array.prototype.join.call(arguments)+')');
+			this.b = b;
+			
+			this.publicFunction = function(x){console.info('B::publicFunction()');return this.super('publicFunction')+x};
+	},"(b,a)=>A(a)");
+	
+	
+	/**
+	* class X
+	*/
+	var X = Class(function(x){
+			_DEBUG && console.info('X::constructor('+Array.prototype.join.call(arguments)+')');
+			this.x = x;
+
+			this.publicFunction = function(){console.info('X::publicFunction()');return this.x};
+	});
+	
+
+	/**
+	* class ABX : B,X
+	* -> B::constructor (b,a)
+	* -> X::constructor (x)
+	*/
+	var ABX = 
+		function(a,b,x){
+			_DEBUG && console.info('ABX::constructor('+Array.prototype.join.call(arguments)+')');
+
+			var myPrivate=a;
+
+			return {
+				publicFunction : function(x){console.info('ABX::publicFunction()');return this.super('B::publicFunction',x)+this.super('X::publicFunction')+this.getP()},
+				getP : function(){return myPrivate},
+				setP : function(p){myPrivate=p}
+			};
+		}.inherits({
+			B : {class : B, params : "(a,b,x)=>B(b||0,a||0)"},
+			X : {class : X, params : "(a,b,x)=>X(x||0)"}
+		}).extend({
+			showMe : function(x){console.info(this)}
+		});
+
+	
+	/**
+	* class FIX : ABX
+	* -> ABX::constructor (1,2,3)
+	*/
+	var FIX = function(dynamic){
+			_DEBUG && console.info('FIX::constructor('+Array.prototype.join.call(arguments)+')');
+			this.dynamic = dynamic;
+			
+			this.publicFunction = function(x){console.info('FIX::publicFunction()');return this.super('publicFunction',x||1)+1};
+	}.inherits(
+		ABX,"=>(1,2,3)");
+
+	
+	
+	// instances
+	_DEBUG = true;
+	fix = new FIX('text');
+	_DEBUG = false;
+
+	
+		function loadTest()
+		{
+			console.info("-------- fix: --------");
+			fix.showMe();
+			console.info("-------- publicFunction --------");
+			console.info("=> "+fix.publicFunction());
+		}
+	</script>
+
+</head>
+
+<body onload="loadTest()">
+</body>
+</html>
