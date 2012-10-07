@@ -3,6 +3,8 @@ JavaScript OOP extension: js++
 
 ## If You like this syntax, You'll like js++
 
+var _DEBUG = true;
+
 /**
 * class ABX : B,X
 * -> B::constructor (b,a)
