@@ -30,7 +30,10 @@
 			_DEBUG && console.info('A::constructor('+Array.prototype.join.call(arguments)+')');
 			this.a = a;
 			
-			this.publicFunction = function(){console.info('A::publicFunction()');return this.a};
+			this.publicFunction = function(){
+				console.info('A::publicFunction()');
+				return this.a
+			};
 	});
 
 	/**
@@ -41,7 +44,10 @@
 			_DEBUG && console.info('B::constructor('+Array.prototype.join.call(arguments)+')');
 			this.b = b;
 			
-			this.publicFunction = function(x){console.info('B::publicFunction()');return this.super('publicFunction')+x};
+			this.publicFunction = function(x){
+				console.info('B::publicFunction('+Array.prototype.join.call(arguments)+')');
+				return this.super('publicFunction')+x
+			};
 	},"(b,a)=>A(a)");
 	
 	
@@ -52,7 +58,10 @@
 			_DEBUG && console.info('X::constructor('+Array.prototype.join.call(arguments)+')');
 			this.x = x;
 
-			this.publicFunction = function(){console.info('X::publicFunction()');return this.x};
+			this.publicFunction = function(){
+				console.info('X::publicFunction('+Array.prototype.join.call(arguments)+')');
+				return this.x
+			};
 	});
 	
 
@@ -68,15 +77,19 @@
 			var myPrivate=a;
 
 			return {
-				publicFunction : function(x){console.info('ABX::publicFunction()');return this.super('B::publicFunction',x)+this.super('X::publicFunction')+this.getP()},
+				publicFunction : function(x){
+					console.info('ABX::publicFunction('+Array.prototype.join.call(arguments)+')');
+					return this.super('B::publicFunction',x)
+					       + this.super('X::publicFunction')
+						   + this.getP();
+				},
+
 				getP : function(){return myPrivate},
 				setP : function(p){myPrivate=p}
 			};
 		}.inherits({
 			B : {class : B, params : "(a,b,x)=>B(b||0,a||0)"},
 			X : {class : X, params : "(a,b,x)=>X(x||0)"}
-		}).extend({
-			showMe : function(x){console.info(this)}
 		});
 
 	
@@ -88,7 +101,7 @@
 			_DEBUG && console.info('FIX::constructor('+Array.prototype.join.call(arguments)+')');
 			this.dynamic = dynamic;
 			
-			this.publicFunction = function(x){console.info('FIX::publicFunction()');return this.super('publicFunction',x||1)+1};
+			this.publicFunction = function(x){console.info('FIX::publicFunction('+Array.prototype.join.call(arguments)+')');return this.super('publicFunction',x||1)+1};
 	}.inherits(
 		ABX,"=>(1,2,3)");
 
@@ -98,15 +111,27 @@
 	_DEBUG = true;
 	fix = new FIX('text');
 	_DEBUG = false;
-
 	
-		function loadTest()
-		{
-			console.info("-------- fix: --------");
-			fix.showMe();
-			console.info("-------- publicFunction --------");
-			console.info("=> "+fix.publicFunction());
-		}
+	// extend
+	A.extend({
+			showMe : function(x){console.info(this)}
+		},true);
+
+
+	Function.prototype.super = function(){
+		console.info(this);
+		console.info(arguments);
+		console.info(arguments.callee);
+	};
+
+
+	function loadTest()
+	{
+		console.info("#---------------- fix: -------------------#");
+		fix.showMe();
+		console.info("#---------------- fix.publicFunction() ---#");
+		console.info("=> "+fix.publicFunction());
+	}
 	</script>
 
 </head>

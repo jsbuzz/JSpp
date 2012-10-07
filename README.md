@@ -31,7 +31,13 @@ Find the full example code in demo.html
 			var myPrivate=a;
 
 			return {
-				publicFunction : function(x){console.info('ABX::publicFunction()');return this.super('B::publicFunction',x)+this.super('X::publicFunction')+this.getP()},
+				publicFunction : function(x) {
+					console.info('ABX::publicFunction()');
+					return this.super('B::publicFunction',x)
+					       + this.super('X::publicFunction')
+						   + this.getP()
+				},
+
 				getP : function(){return myPrivate},
 				setP : function(p){myPrivate=p}
 			};

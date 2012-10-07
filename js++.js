@@ -158,7 +158,7 @@ Class.prototype.super = function()
 	{
 		arguments[0] = t[1];
 
-		if(typeof(parentClass = this.constructor._classNames[t[0]])=='undefined')
+		if(!this.constructor._classNames || typeof(parentClass = this.constructor._classNames[t[0]])=='undefined')
 			return false; //throw "superclass '"+t[0]+"' not found"
 	}
 		
@@ -172,7 +172,7 @@ Class.prototype.super = function()
 		if(arguments.length)
 		{
 			var fn = arguments[0],args = Array.prototype.slice.call(arguments,1);
-			if(typeof(fn = this.constructor._supers[i]._instance[fn])=='function' || typeof(fn = this.constructor._supers[i]._prototype.prototype[fn])=='function')
+			if(this.constructor._supers[i]!==undefined && typeof(fn = this.constructor._supers[i]._instance[fn])=='function' || this.constructor._supers[i]._prototype!==undefined && typeof(fn = this.constructor._supers[i]._prototype.prototype[fn])=='function')
 			{
 				var savedConstructor = this.constructor;
 				this.constructor = this.constructor._supers[i]; // step up in hierarchy
@@ -181,8 +181,8 @@ Class.prototype.super = function()
 				return returnValue;
 			}
 		}
-		else if(typeof(fn = this.constructor._supers[i]._instance[fn])=='function')
-			return this.constructor._supers[i]._instance;
+		else
+			return this.constructor._supers[i]._instance; // direct access... Do I really want it? It return with the first one
 
 		if(parentClass!==false)
 			return false;
