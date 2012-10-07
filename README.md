@@ -13,7 +13,7 @@ JavaScript OOP extension
 	- readable syntax
 
 
-## If You like this syntax, You'll like js++
+## If You like this code, You'll like js++
 
 Find the full example code in demo.html
 
