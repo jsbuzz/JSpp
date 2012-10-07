@@ -1,6 +1,6 @@
 JavaScript OOP extension
 ========================
-Key Features:
+### Key Features:
  + class inheritance
  + multiple ancestors
  + unlimited inheritance chain
@@ -13,7 +13,7 @@ Key Features:
  + _readable syntax_
 
 
-## If You like this code, You'll like js++
+### If You like this code, You'll like js++
 
 Find the full example code in demo.html
 
