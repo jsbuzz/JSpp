@@ -1,16 +1,16 @@
 JavaScript OOP extension
 ========================
 *Key Features:*
-	- class inheritance
-	- multiple ancestors
- 	- unlimited inheritance chain
-	- fast built-in instanceof support
-	- short construction time - less object merging more real inheritance
-	- access all ancestors methods via this.super() function
-	- supports private methods and properties (e.g. var private=1)
-	- easy and fast recursive class extension to all subclasses and all instances
-	- supports all types of constructor functions
-	- readable syntax
+ + class inheritance
+ + multiple ancestors
+ + unlimited inheritance chain
+ + fast built-in instanceof support
+ + short construction time [less object merging and more *real inheritance*]
+ + access all ancestors methods via this.super() function
+ + supports private methods and properties (e.g. var private=1)
+ + easy and fast recursive class extension to all subclasses and all instances
+ + supports all types of constructor functions
+ + readable syntax
 
 
 ## If You like this code, You'll like js++
