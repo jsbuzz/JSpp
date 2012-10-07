@@ -3,6 +3,8 @@ JavaScript OOP extension: js++
 
 ## If You like this syntax, You'll like js++
 
+Find the full example code in demo.html
+
 	var _DEBUG = true;
 
 	/**
@@ -24,6 +26,4 @@ JavaScript OOP extension: js++
 		}.inherits({
 			B : {class : B, params : "(a,b,x)=>B(b||0,a||0)"},
 			X : {class : X, params : "(a,b,x)=>X(x||0)"}
-		}).extend({
-			showMe : function(x){console.info(this)}
 		});
