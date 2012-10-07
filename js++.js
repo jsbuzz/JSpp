@@ -182,7 +182,7 @@ Class.prototype.super = function()
 			}
 		}
 		else
-			return this.constructor._supers[i]._instance; // direct access... Do I really want it? It return with the first one
+			return this.constructor._supers[i]._instance; // direct access... Do I really want it? It returns with the first one
 
 		if(parentClass!==false)
 			return false;
