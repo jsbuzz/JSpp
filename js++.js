@@ -90,7 +90,7 @@ Class._applyConstructor = function(fn,obj,args,constructor){
 
 /** ***************************************************************************************************************** Class::_constructor
 * This is the constructor replacement for inherited objects. The function applies all the inherited constructors 
-* on the object with the given fixed arguments
+* on the object in the right order.
 */
 Class._constructor = function(child,parents,constructor,paramChannels)
 {
