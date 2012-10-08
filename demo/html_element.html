@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>js++ Elements demo</title>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+	<!-- sorry guys for using your server directly... -->
+	
+	<script type="text/javascript" src="../js++.js"></script>
+	<script type="text/javascript">
+
+		var _DEBUG = false;
+
+		/**
+		* DOMNode class
+		*/
+		var DOMNode = Class(function(tag,text,attributes,parent){
+			_DEBUG && console.info('DOMNode::constructor()');
+			this.tag = tag;
+			this.attributes = attributes || [];
+			this.parent = parent;
+			this.children = [];
+
+			// private node
+			var node = typeof(tag)=='string' ? $('<'+tag+'>'+(text || '')+'</'+tag+'>') : $(tag);
+			
+			node.data('DOMNode',this);
+
+			// set attributes
+			for(var i in attributes)
+				node.attr(i,attributes[i]);
+
+			// private node getter
+			this.node = function(){
+				return node;
+			};
+
+			// show()
+			this.show = function(){
+				if(this.parent)
+					this.parent.append(this);
+			};
+
+			// append(newNode)
+			this.append = function(newNode){
+				this.children.push(newNode);
+				node.append(newNode.node());
+
+				return this;
+			};
+		});
+
+		
+		/**
+		* Div : DOMNode
+		*/
+		var Div = Class(DOMNode).derived(function(text,attributes,parent){
+			_DEBUG && console.info('Div::constructor()');
+		},"(text,attributes,parent)=>DOMNode('div',text,attributes,parent)");
+
+
+		/**
+		* ErrorDiv : Div
+		*/
+		var ErrorDiv = Class(Div).derived(function(text,parent){
+			_DEBUG && console.info('ErrorDiv::constructor()');
+			},//params:
+			'(text,parent)=>Div('
+				+'text||"Error",' // text
+				+'{style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"},' // attributes fixed
+				+'parent)' // parent
+		);
+		
+		var ErrorDiv = Class(Div).derived(function(text,parent){
+			_DEBUG && console.info('ErrorDiv::constructor()');
+			},//params:
+			'(text,parent)=>Div('
+				+'text||"Error",' // text
+				+'{style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"},' // attributes fixed
+				+'parent' // parent
+			+')'
+		);
+
+		
+		
+		/**
+		* Img : DOMNode
+		*/
+		var Img = function(src,attributes,parent){
+			_DEBUG && console.info('Img::constructor()');
+			
+			this.src = src;
+
+		}.inherits(DOMNode,
+		'(src,attributes,parent)=>DOMNode("img","",$.extend(attributes,{src:src}),parent)');
+
+
+		//-----------------------------------------------------------------------------------------
+		/*
+		* Test code
+		*/
+		$(function(){
+			body = new DOMNode(document.body);
+
+			wrapper = new Div('',{style:'border:1px dotted #999'});
+			firstDiv = new Div("I'm the first",{style:'padding:6px'});
+			errorDiv = new ErrorDiv("I'm an error message");
+			jQuery_wrapper = new Div('',{style:'background-color:#0f1923;padding:6px'});
+			jQuery_logo = new Img('http://static.jquery.com/files/rocker/images/logo_jquery_215x53.gif');
+
+			body.append(
+				wrapper
+					.append(firstDiv)
+					.append(errorDiv)
+					.append(jQuery_wrapper
+						.append(jQuery_logo))
+			);
+		});
+
+
+	</script>
+	<style type="text/css">
+		* {
+			font-family: Calibri,Helvetia,sans-serif;
+		}
+
+		body {
+			padding:20px;
+			margin:0;
+		}
+	</style>
+</head>
+<body></body>
+</html>

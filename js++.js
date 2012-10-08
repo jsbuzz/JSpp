@@ -12,29 +12,7 @@
  *	- supports private methods and properties (e.g. var private=1)
  *	- easy and fast recursive class extension to all subclasses and all instances
  *	- supports all types of constructor functions
- *	- readable syntax :
- *	var ABX = 
- *		function(a,b,x){ // ABX class constructor
- *			_DEBUG && console.info('ABX::constructor('+Array.prototype.join.call(arguments)+')');
- *
- *			var myPrivate=a; // private property
- *
- *			// public functions
- *			this.publicFunction = function(num){
- *				return 
- *					this.super('B::publicFunction',num)
- *					+ this.super('X::publicFunction')
- *					+ this.getP()};
- *
- *			this.getP = function() { return myPrivate; };
- *			this.setP = function(p) { myPrivate=parseInt(p); };
- *			};
- *		}.inherits({ // ancestors
- *			B : {class : B, params : "(a,b,x)=>B(b||0,a||0)"},
- *			X : {class : X, params : "(a,b,x)=>X(x||0)"}
- *		}).extend({ // more public functions
- *			showMe : function(x) { console.info(this); }
- *		}); 
+ *	- readable syntax
  *
  * @author Matyas Buczko matyas.buczko@gmail.com
  */
