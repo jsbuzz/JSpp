@@ -261,7 +261,7 @@ Function.prototype.derived = function(childConstructor,paramQuery){
 
 	var constructors = this.constructors || [this];
 	var DerivedClass = function(){};
-	
+
 	paramChannel = paramQuery ? Class._paramQuery(paramQuery) : Class._paramQuery.proxy.bind(this);
 	var paramChannels = (this.paramChannels || []).concat([paramChannel]);
 	paramChannel.parent = paramChannels.length;
