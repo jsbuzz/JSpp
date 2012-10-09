@@ -71,8 +71,34 @@
 				+'{style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"},' // attributes fixed
 				+'parent)' // parent
 		);
+/*
+	suggestions for the parameter passing:
+		Div._callParams('text,parent')
+			.param('text||"Error"') // text
+			.param({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
+			.param('parent') // parent
 
-		
+		Div._params('text,parent')
+			.add('text||"Error"') // text
+			.add({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
+			.add('parent') // parent
+
+		Div._call('text,parent')
+		   ._('text||"Error"') // text
+		   ._({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
+		   ._('parent') // parent
+
+		Div.$('text,parent')
+		   .$('text||"Error"') // text
+		   .$({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
+		   .$('parent') // parent
+
+		Div.$('text,parent')
+			 ('text||"Error"') // text
+			 ({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
+			 ('parent') // parent
+
+*/	
 		
 		/**
 		* Img : DOMNode
