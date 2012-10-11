@@ -114,6 +114,15 @@
 					.append(jQuery_wrapper
 						.append(jQuery_logo))
 			);
+			
+		var limit = 1000;
+		var started = (new Date()).getTime();
+		cc = new Array(limit);
+		for(var i=0; i<limit;i++)
+			cc[i] = new ErrorDiv('');
+
+		console.info("# done in "+((new Date()).getTime() - started)+" ms");
+
 		});
 
 

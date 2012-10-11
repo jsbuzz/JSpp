@@ -13,12 +13,35 @@
 			padding:20px;
 			margin:0;
 		}
+		
+		#debug {
+			position: absolute;
+			left: 10px;
+			width: 710px;
+			line-height: 140%;
+		}
+		#code {
+			font-family: Consolas, "Liberation Mono", Courier, monospace;
+			font-size: 12px;
+			position: absolute;
+			left: 720px;
+			width: 750px;
+			border-left: 1px dotted #999;
+		}
+
 	</style>
 
 	<script type="text/javascript" src="../js++.js"></script>
 	<script type="text/javascript">
 
 	_DEBUG = false;
+	
+	function debug(txt,noConsole)
+	{
+		document.getElementById('debug').innerHTML = document.getElementById('debug').innerHTML+(typeof(txt)=='object' ? JSON.stringify(txt) : txt)+'\n';
+		if(!noConsole && console && typeof(console.info) == 'function')
+			console.info(txt)
+	}
 	
 	
 	// A very extreme example of using the super() method from the constructor
@@ -35,40 +58,39 @@
 	/**
 	* class A
 	*/
-	var A = Class(function(a){
-			_DEBUG && console.info('A::constructor('+Array.prototype.join.call(arguments)+')');
+	var A = function(a){
+			_DEBUG && debug('A::constructor('+Array.prototype.join.call(arguments)+')');
 			
-			var private_a=2;
+			var private_a;
 			
 			this.setMyVariables = function(a){
-				_DEBUG && console.info('	A::setMyVariables('+Array.prototype.join.call(arguments)+')');
+				_DEBUG && debug('	A::setMyVariables('+Array.prototype.join.call(arguments)+')');
 				this.a = a;
 				this.setPrivate('a',a);
 			};
-			
-			this.getPrivate = function(varName){
-				return eval('(private_'+varName+')');
-			};
-			
-			this.setPrivate = function(varName,value){
-				return eval('private_'+varName+'='+value);
-			};
-			
+
 			if(a!==undefined)
 				this.setMyVariables(a);
-	});
+	};
 
 	/**
 	* class B : A
 	* -> A::constructor ()
 	*/
 	var B = A.derived(function(a,b){
-			_DEBUG && console.info('B::constructor('+Array.prototype.join.call(arguments)+')');
+			_DEBUG && debug('B::constructor('+Array.prototype.join.call(arguments)+')');
+			
+			var private_b;
 			
 			this.setMyVariables = function(a,b){
-				_DEBUG && console.info('	B::setMyVariables('+Array.prototype.join.call(arguments)+')');
+				_DEBUG && debug('	B::setMyVariables('+Array.prototype.join.call(arguments)+')');
+
+				if(_DEBUG && !A._instance)
+					debug('-- creating A._instance --');
+
 				this.super('setMyVariables',a);
 				this.b = b;
+				this.setPrivate('b',b);
 			};
 			
 			if(a!==undefined)
@@ -82,12 +104,19 @@
 	* -> B::constructor ()
 	*/
 	var C = B.derived(function(a,b,c){
-			_DEBUG && console.info('C::constructor('+Array.prototype.join.call(arguments)+')');
-			
+			_DEBUG && debug('C::constructor('+Array.prototype.join.call(arguments)+')');
+
+			var private_c;
+
 			this.setMyVariables = function(a,b,c){
-				_DEBUG && console.info('	C::setMyVariables('+Array.prototype.join.call(arguments)+')');
+				_DEBUG && debug('	C::setMyVariables('+Array.prototype.join.call(arguments)+')');
+
+				if(_DEBUG && !B._instance)
+					debug('-- creating B._instance --');
+
 				this.super('setMyVariables',a,b);
 				this.c = c;
+				this.setPrivate('c',c);
 			};
 			
 			if(a!==undefined)
@@ -95,22 +124,38 @@
 	},"(a,b,c)=>B()");
 
 
+
 	// extend showOff :)
 	A.extend({
-		showMe : function(){console.info(this)}
+		showMe : function(){debug(this)},
+		
+		getPrivate : function(varName){
+			return eval('(private_'+varName+')');
+		},
+		
+		setPrivate : function(varName,value){
+			return eval('private_'+varName+'='+value);
+		}
 	},true);
+
 
 	function loadTest()
 	{
 		_DEBUG = true;
-		console.info('# First there will be a lot of constructor calls as the instances are initialized for the classes');
+		debug('# First there will be a lot of constructor calls as the instances are initialized for the classes');
+		debug('# The Class instances are used by the <b>super</b> method to access the superclass and simulate its functionality.');
+		debug('# They are created only once and only at the first time they are needed. \n');
+		debug('c = new C(1,2,3) :');
 		c = new C(1,2,3);
+		debug('\nResult:');
 		c.showMe();
 		
-		_DEBUG = true;
-		console.info('# The second time is less messy');
-		console.info('# it is easier to see the process step by step');
+		debug('<hr/>',true);
+		debug('# The second time is less messy');
+		debug('# it is easier to see the process step by step\n');
+		debug('c = new C(1,2,3) :');
 		c = new C(1,2,3);
+		debug('\nResult:');
 		c.showMe();
 	}
 	</script>
@@ -118,5 +163,90 @@
 </head>
 
 <body onload="loadTest()">
+	<pre id="debug"></pre>
+	<pre id="code">
+	/**
+	* class A
+	*/
+	var A = function(a){
+			_DEBUG && debug('A::constructor('+Array.prototype.join.call(arguments)+')');
+			
+			var private_a;
+			
+			this.setMyVariables = function(a){
+				_DEBUG && debug('	A::setMyVariables('+Array.prototype.join.call(arguments)+')');
+				this.a = a;
+				this.setPrivate('a',a);
+			};
+
+			if(a!==undefined)
+				this.setMyVariables(a);
+	};
+
+	/**
+	* class B : A
+	* -> A::constructor ()
+	*/
+	var B = A.derived(function(a,b){
+			_DEBUG && debug('B::constructor('+Array.prototype.join.call(arguments)+')');
+			
+			var private_b;
+			
+			this.setMyVariables = function(a,b){
+				_DEBUG && debug('	B::setMyVariables('+Array.prototype.join.call(arguments)+')');
+
+				if(_DEBUG && !A._instance)
+					debug('-- creating A._instance --');
+
+				this.super('setMyVariables',a);
+				this.b = b;
+				this.setPrivate('b',b);
+			};
+			
+			if(a!==undefined)
+				this.setMyVariables(a,b);
+	},"(a,b)=>A()");
+
+
+
+	/**
+	* class C : B
+	* -> B::constructor ()
+	*/
+	var C = B.derived(function(a,b,c){
+			_DEBUG && debug('C::constructor('+Array.prototype.join.call(arguments)+')');
+
+			var private_c;
+
+			this.setMyVariables = function(a,b,c){
+				_DEBUG && debug('	C::setMyVariables('+Array.prototype.join.call(arguments)+')');
+
+				if(_DEBUG && !B._instance)
+					debug('-- creating B._instance --');
+
+				this.super('setMyVariables',a,b);
+				this.c = c;
+				this.setPrivate('c',c);
+			};
+			
+			if(a!==undefined)
+				this.setMyVariables(a,b,c);
+	},"(a,b,c)=>B()");
+
+
+
+	// extend showOff :)
+	A.extend({
+		showMe : function(){debug(this)},
+		
+		getPrivate : function(varName){
+			return eval('(private_'+varName+')');
+		},
+		
+		setPrivate : function(varName,value){
+			return eval('private_'+varName+'='+value);
+		}
+	},true);
+	</pre>
 </body>
 </html>
