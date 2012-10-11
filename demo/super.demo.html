@@ -30,7 +30,7 @@
 			_DEBUG && console.info('A::constructor('+Array.prototype.join.call(arguments)+')');
 			
 			this.setMyVariables = function(a){
-				_DEBUG && console.info('A::setMyVariables('+Array.prototype.join.call(arguments)+')');
+				_DEBUG && console.info('	A::setMyVariables('+Array.prototype.join.call(arguments)+')');
 				this.a = a;
 			};
 			
@@ -46,7 +46,7 @@
 			_DEBUG && console.info('B::constructor('+Array.prototype.join.call(arguments)+')');
 			
 			this.setMyVariables = function(a,b){
-				_DEBUG && console.info('B::setMyVariables('+Array.prototype.join.call(arguments)+')');
+				_DEBUG && console.info('	B::setMyVariables('+Array.prototype.join.call(arguments)+')');
 				this.super('setMyVariables',a);
 				this.b = b;
 			};
@@ -65,7 +65,7 @@
 			_DEBUG && console.info('C::constructor('+Array.prototype.join.call(arguments)+')');
 			
 			this.setMyVariables = function(a,b,c){
-				_DEBUG && console.info('C::setMyVariables('+Array.prototype.join.call(arguments)+')');
+				_DEBUG && console.info('	C::setMyVariables('+Array.prototype.join.call(arguments)+')');
 				this.super('setMyVariables',a,b);
 				this.c = c;
 			};
@@ -75,7 +75,7 @@
 	},"(a,b,c)=>B()");
 
 
-	// extend
+	// extend showOff :)
 	A.extend({
 		showMe : function(){console.info(this)}
 	},true);
@@ -83,7 +83,7 @@
 	function loadTest()
 	{
 		_DEBUG = true;
-		console.info('# First there will b a lot of constructor calls as the instances initialized for the classes');
+		console.info('# First there will be a lot of constructor calls as the instances are initialized for the classes');
 		c = new C(1,2,3);
 		c.showMe();
 		
