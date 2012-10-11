@@ -23,15 +23,35 @@
 	
 	// A very extreme example of using the super() method from the constructor
 
+/*
+ Interesting note, that the private getter/setter doesn't work with the super() method because it will always refer to the
+ A._instance instead of the current one. It is because of the declaration scope.
+ 
+ So this current version [1.0 | 2012-10-11] doesn't support the private setters and getters with the super() method.
+ 
+ But the ugly method pair getPrivate/setPrivate works fine for the same reason.
+*/
+
 	/**
 	* class A
 	*/
 	var A = Class(function(a){
 			_DEBUG && console.info('A::constructor('+Array.prototype.join.call(arguments)+')');
 			
+			var private_a=2;
+			
 			this.setMyVariables = function(a){
 				_DEBUG && console.info('	A::setMyVariables('+Array.prototype.join.call(arguments)+')');
 				this.a = a;
+				this.setPrivate('a',a);
+			};
+			
+			this.getPrivate = function(varName){
+				return eval('(private_'+varName+')');
+			};
+			
+			this.setPrivate = function(varName,value){
+				return eval('private_'+varName+'='+value);
 			};
 			
 			if(a!==undefined)
