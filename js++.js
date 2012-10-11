@@ -102,12 +102,12 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 		paramMap[i] = paramChannels[i].apply(null,paramMap[paramChannels[i].parent]);
 
 	Class._lastCreated = new constructor;
+	Class._lastCreated.constructor = child._caller;
 	for(var i=0;i<parents.length;i++)
 	{
 		Class._applyConstructor(parents[i],Class._lastCreated,paramMap[i],constructor);
 	}
 	Class._applyConstructor(child,Class._lastCreated,args,constructor);
-	Class._lastCreated.constructor = child._caller;
 
 	return Class._lastCreated;
 }
@@ -128,7 +128,7 @@ Class._inherits = function(child,parent)
 Class.prototype.super = function()
 {
 	if(!this.constructor._supers)
-		return false; // throw "I have no superclass";
+		throw new Error("I have no superclass!");
 	
 	// Interpret the 'Class::method' nice format
 	var t,parentClass = false;
@@ -137,7 +137,7 @@ Class.prototype.super = function()
 		arguments[0] = t[1];
 
 		if(!this.constructor._classNames || typeof(parentClass = this.constructor._classNames[t[0]])=='undefined')
-			return false; //throw "superclass '"+t[0]+"' not found"
+			throw new Error("superclass '"+t[0]+"' not found");
 	}
 		
 	for(var i=0; i <  this.constructor._supers.length; i++)
@@ -361,10 +361,16 @@ Function.prototype.inherits = function(parents,paramQuery)
 
 
 
-/** ***************************************************************************************************************** Class::_paramQuery
-* ...
+/** ***************************************************************************************************************** param handling
+* These tools are made for the readable and smart parameter passing
 */
 Class._paramQuery = function(query){
+
+	if(typeof(query)=='object' && query.paramsFrom)
+	{
+		query = '('+query.paramsFrom+')=>('+query.map.join()+')';
+	}
+
 	query = query.trim().split("=>");
 	if(query.length==1)
 	{
@@ -378,3 +384,14 @@ Class._paramQuery = function(query){
 };
 
 Class._paramQuery.proxy = function(){return Array.prototype.slice.call(arguments)};
+
+Class.paramsFrom = function(paramList){
+	return {
+		paramsFrom: paramList,
+		map : [],
+		to: function(param){
+			this.map.push(typeof(param)=='object' ? JSON.stringify(param) : param);
+			return this;
+		}
+	};
+}

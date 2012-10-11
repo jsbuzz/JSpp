@@ -22,6 +22,7 @@
 			this.parent = parent;
 			this.children = [];
 
+
 			// private node
 			var node = typeof(tag)=='string' ? $('<'+tag+'>'+(text || '')+'</'+tag+'>') : $(tag);
 			
@@ -66,39 +67,20 @@
 		var ErrorDiv = Class(Div).derived(function(text,parent){
 			_DEBUG && console.info('ErrorDiv::constructor()');
 			},//params:
-			'(text,parent)=>Div('
-				+'text||"Error",' // text
-				+'{style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"},' // attributes fixed
-				+'parent)' // parent
+			Class.paramsFrom('text,parent')
+				.to('text||"Error"') // text
+				.to({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes (fixed)
+				.to('parent') // parent
 		);
-/*
-	suggestions for the parameter passing:
-		Div._callParams('text,parent')
-			.param('text||"Error"') // text
-			.param({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
-			.param('parent') // parent
 
-		Div._params('text,parent')
-			.add('text||"Error"') // text
-			.add({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
-			.add('parent') // parent
-
-		Div._call('text,parent')
-		   ._('text||"Error"') // text
-		   ._({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
-		   ._('parent') // parent
-
-		Div.$('text,parent')
-		   .$('text||"Error"') // text
-		   .$({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
-		   .$('parent') // parent
-
-		Div.$('text,parent')
-			 ('text||"Error"') // text
-			 ({style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"}) // attributes fixed
-			 ('parent') // parent
-
-*/	
+/* this looks fine as well:
+		Class.paramHandler('(text,parent)=>(text,attributes,parent)')
+			.values({
+				text: '@text',
+				attributes: {style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"},
+				parent: '@parent'
+			});
+*/
 		
 		/**
 		* Img : DOMNode
