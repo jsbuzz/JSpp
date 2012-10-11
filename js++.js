@@ -70,11 +70,13 @@ Class._provideBasicFunctions = function(fn,_prototype,_bind){
 	}
 };
 
+
 /** ***************************************************************************************************************** Class::_lastCreated
 * garbage collector issue fix. We need a global scope for creating the inherited objects 
 * otherwise the GC kills the object after the constructor finishes.
 */
 Class._lastCreated = null;
+
 
 /** ***************************************************************************************************************** Class::_applyConstructor
 * this function applies the given constructor on the object. It also merges the return values and the prototypes.
@@ -85,8 +87,12 @@ Class._applyConstructor = function(fn,obj,args,constructor){
 		constructor.prototype[i] = fn.prototype[i];
 	var returnValues = fn.apply(obj,args); // return {...} type of constructor ready :)
 	for(var i in returnValues)
-		obj[i] = returnValues[i];
+	{
+		if(returnValues[i]!==undefined)
+			obj[i] = returnValues[i];
+	}
 }
+
 
 /** ***************************************************************************************************************** Class::_constructor
 * This is the constructor replacement for inherited objects. The function applies all the inherited constructors 
@@ -102,15 +108,17 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 		paramMap[i] = paramChannels[i].apply(null,paramMap[paramChannels[i].parent]);
 
 	Class._lastCreated = new constructor;
-	Class._lastCreated.constructor = child._caller;
 	for(var i=0;i<parents.length;i++)
 	{
+		Class._lastCreated.constructor = child._caller.constructors[i]._caller || child._caller.constructors[i];
 		Class._applyConstructor(parents[i],Class._lastCreated,paramMap[i],constructor);
 	}
+	Class._lastCreated.constructor = child._caller;
 	Class._applyConstructor(child,Class._lastCreated,args,constructor);
 
 	return Class._lastCreated;
 }
+
 
 /** ***************************************************************************************************************** Class::_inherits
 * This method links the child and parent classes in the inheritance chain.
@@ -145,7 +153,11 @@ Class.prototype.super = function()
 		if(parentClass!==false)
 			i = parentClass;
 
+		// ! creating the superinstance can divert the Class._lastCreated reference !
+		t = Class._lastCreated; // << so save it
+		// do the construction :
 		this.constructor._supers[i]._instance || (this.constructor._supers[i]._instance = new this.constructor._supers[i]);
+		Class._lastCreated = t; // << and place it back where it should point
 		
 		if(arguments.length)
 		{

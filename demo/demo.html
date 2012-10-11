@@ -91,6 +91,8 @@
 		}.inherits({
 			B : {class : B, params : "(a,b,x)=>B(b||0,a||0)"},
 			X : {class : X, params : "(a,b,x)=>X(x||0)"}
+		}).extend({
+			something : function(){return this.getP()}
 		});
 
 	
