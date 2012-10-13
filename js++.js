@@ -88,7 +88,7 @@ Class._applyConstructor = function(fn,obj,args,constructor){
 	var returnValues = fn.apply(obj,args); // return {...} type of constructor ready :)
 	for(var i in returnValues)
 	{
-		if(returnValues[i]!==undefined)
+		if(typeof(returnValues[i])!=='undefined')
 			obj[i] = returnValues[i];
 	}
 }
@@ -162,7 +162,7 @@ Class.prototype.super = function()
 		if(arguments.length)
 		{
 			var fn = arguments[0],args = Array.prototype.slice.call(arguments,1);
-			if(this.constructor._supers[i]!==undefined && typeof(fn = this.constructor._supers[i]._instance[fn])=='function' || this.constructor._supers[i]._prototype!==undefined && typeof(fn = this.constructor._supers[i]._prototype.prototype[fn])=='function')
+			if(typeof(this.constructor._supers[i])!=='undefined' && typeof(fn = this.constructor._supers[i]._instance[fn])=='function' || typeof(this.constructor._supers[i]._prototype)!=='undefined' && typeof(fn = this.constructor._supers[i]._prototype.prototype[fn])=='function')
 			{
 				var savedConstructor = this.constructor;
 				this.constructor = this.constructor._supers[i]; // step up in hierarchy
@@ -312,7 +312,7 @@ Function.prototype.inherits = function(parents,paramQuery)
 
 			for(var className in parents)
 			{
-				arrayVersion.push(parents[className].class);
+				arrayVersion.push(parents[className]['class']);
 				paramChannel.push(Class._paramQuery(parents[className].params) || false)
 				classNames[className] = i++;
 			}
@@ -378,21 +378,28 @@ Function.prototype.inherits = function(parents,paramQuery)
 */
 Class._paramQuery = function(query){
 
+	function trim(str)
+	{
+		return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+	}
+
 	if(typeof(query)=='object' && query.paramsFrom)
 	{
 		query = '('+query.paramsFrom+')=>('+query.map.join()+')';
 	}
 
-	query = query.trim().split("=>");
+	query = trim(query).split("=>");
 	if(query.length==1)
 	{
 		query[1] = query[0];
 		query[0] = "()";
-	}else if(!query[0].trim().length)
+	}else if(!trim(query[0]).length)
 		query[0] = "()";
 
-	query[1] = query[1].trim();
-	return eval("(function"+query[0]+"{return ["+query[1].substring(query[1].indexOf('(')+1,query[1].lastIndexOf(')'))+"]})");
+	query[1] = trim(query[1]);
+	var tmp;
+	eval("tmp = function"+query[0]+"{return ["+query[1].substring(query[1].indexOf('(')+1,query[1].lastIndexOf(')'))+"];}");
+	return tmp;
 };
 
 Class._paramQuery.proxy = function(){return Array.prototype.slice.call(arguments)};
