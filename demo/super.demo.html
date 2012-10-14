@@ -1,4 +1,5 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -150,7 +151,7 @@
 		debug('\nResult:');
 		c.showMe();
 		
-		debug('<hr/>',true);
+		debug('\n');
 		debug('# The second time is less messy');
 		debug('# it is easier to see the process step by step\n');
 		debug('c = new C(1,2,3) :');
@@ -165,88 +166,88 @@
 <body onload="loadTest()">
 	<pre id="debug"></pre>
 	<pre id="code">
-	/**
-	* class A
-	*/
-	var A = function(a){
-			_DEBUG && debug('A::constructor('+Array.prototype.join.call(arguments)+')');
-			
-			var private_a;
-			
-			this.setMyVariables = function(a){
-				_DEBUG && debug('	A::setMyVariables('+Array.prototype.join.call(arguments)+')');
-				this.a = a;
-				this.setPrivate('a',a);
-			};
+    /**
+    * class A
+    */
+    var A = function(a){
+            _DEBUG && debug('A::constructor('+Array.prototype.join.call(arguments)+')');
+            
+            var private_a;
+            
+            this.setMyVariables = function(a){
+                _DEBUG && debug('    A::setMyVariables('+Array.prototype.join.call(arguments)+')');
+                this.a = a;
+                this.setPrivate('a',a);
+            };
 
-			if(a!==undefined)
-				this.setMyVariables(a);
-	};
+            if(a!==undefined)
+                this.setMyVariables(a);
+    };
 
-	/**
-	* class B : A
-	* -> A::constructor ()
-	*/
-	var B = A.derived(function(a,b){
-			_DEBUG && debug('B::constructor('+Array.prototype.join.call(arguments)+')');
-			
-			var private_b;
-			
-			this.setMyVariables = function(a,b){
-				_DEBUG && debug('	B::setMyVariables('+Array.prototype.join.call(arguments)+')');
+    /**
+    * class B : A
+    * -> A::constructor ()
+    */
+    var B = A.derived(function(a,b){
+            _DEBUG && debug('B::constructor('+Array.prototype.join.call(arguments)+')');
+            
+            var private_b;
+            
+            this.setMyVariables = function(a,b){
+                _DEBUG && debug('    B::setMyVariables('+Array.prototype.join.call(arguments)+')');
 
-				if(_DEBUG && !A._instance)
-					debug('-- creating A._instance --');
+                if(_DEBUG && !A._instance)
+                    debug('-- creating A._instance --');
 
-				this.super('setMyVariables',a);
-				this.b = b;
-				this.setPrivate('b',b);
-			};
-			
-			if(a!==undefined)
-				this.setMyVariables(a,b);
-	},"(a,b)=>A()");
-
-
-
-	/**
-	* class C : B
-	* -> B::constructor ()
-	*/
-	var C = B.derived(function(a,b,c){
-			_DEBUG && debug('C::constructor('+Array.prototype.join.call(arguments)+')');
-
-			var private_c;
-
-			this.setMyVariables = function(a,b,c){
-				_DEBUG && debug('	C::setMyVariables('+Array.prototype.join.call(arguments)+')');
-
-				if(_DEBUG && !B._instance)
-					debug('-- creating B._instance --');
-
-				this.super('setMyVariables',a,b);
-				this.c = c;
-				this.setPrivate('c',c);
-			};
-			
-			if(a!==undefined)
-				this.setMyVariables(a,b,c);
-	},"(a,b,c)=>B()");
+                this.super('setMyVariables',a);
+                this.b = b;
+                this.setPrivate('b',b);
+            };
+            
+            if(a!==undefined)
+                this.setMyVariables(a,b);
+    },"(a,b)=>A()");
 
 
 
-	// extend showOff :)
-	A.extend({
-		showMe : function(){debug(this)},
-		
-		getPrivate : function(varName){
-			return eval('(private_'+varName+')');
-		},
-		
-		setPrivate : function(varName,value){
-			return eval('private_'+varName+'='+value);
-		}
-	},true);
+    /**
+    * class C : B
+    * -> B::constructor ()
+    */
+    var C = B.derived(function(a,b,c){
+            _DEBUG && debug('C::constructor('+Array.prototype.join.call(arguments)+')');
+
+            var private_c;
+
+            this.setMyVariables = function(a,b,c){
+                _DEBUG && debug('    C::setMyVariables('+Array.prototype.join.call(arguments)+')');
+
+                if(_DEBUG && !B._instance)
+                    debug('-- creating B._instance --');
+
+                this.super('setMyVariables',a,b);
+                this.c = c;
+                this.setPrivate('c',c);
+            };
+            
+            if(a!==undefined)
+                this.setMyVariables(a,b,c);
+    },"(a,b,c)=>B()");
+
+
+
+    // extend showOff :)
+    A.extend({
+        showMe : function(){debug(this)},
+        
+        getPrivate : function(varName){
+            return eval('(private_'+varName+')');
+        },
+        
+        setPrivate : function(varName,value){
+            return eval('private_'+varName+'='+value);
+        }
+    },true);
 	</pre>
 </body>
 </html>

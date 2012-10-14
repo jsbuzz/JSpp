@@ -59,6 +59,7 @@ Class._provideBasicFunctions = function(fn,_prototype,_bind){
 	fn.extend || (fn.extend = _bind ? Class.extend.bind(_bind) : Class.extend);
 	fn.extendStatic || (fn.extendStatic = _bind ? Class.extendStatic.bind(_bind) : Class.extendStatic);
 	fn._params || (fn._params = Class._params);
+	fn.applyTo = Class.applyTo;
 
 	if(fn && _prototype)
 	{
@@ -110,7 +111,7 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 	Class._lastCreated = new constructor;
 	for(var i=0;i<parents.length;i++)
 	{
-		Class._lastCreated.constructor = child._caller.constructors[i]._caller || child._caller.constructors[i];
+		Class._lastCreated.constructor = child._caller._constructors[i]._caller || child._caller._constructors[i];
 		Class._applyConstructor(parents[i],Class._lastCreated,paramMap[i],constructor);
 	}
 	Class._lastCreated.constructor = child._caller;
@@ -118,6 +119,21 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 
 	return Class._lastCreated;
 }
+
+
+
+/** ***************************************************************************************************************** Class::applyTo
+*/
+/*Class.applyTo = function(object)
+{
+	// object is derived
+	if(typeof(object.instanceOf))
+	
+	
+}*/
+
+
+
 
 
 /** ***************************************************************************************************************** Class::_inherits
@@ -191,15 +207,15 @@ Class.prototype.instanceOf = function(parent){
 	if(this instanceof parent || this.constructor===parent)
 		return true;
 
-	if(!this.constructor.constructors)
+	if(!this.constructor._constructors)
 		return false;
 
-	var constructors = parent.constructors || [parent];
+	var constructors = parent._constructors || [parent];
 
 	j = 0;
-	for(var i=0;i<this.constructor.constructors.length;i++)
+	for(var i=0;i<this.constructor._constructors.length;i++)
 	{
-		if(this.constructor.constructors[i]==constructors[j])
+		if(this.constructor._constructors[i]==constructors[j])
 		{
 			if(++j>=constructors.length)
 				return true;
@@ -271,11 +287,11 @@ Function.prototype.derived = function(childConstructor,paramQuery){
 
 	Class._provideBasicFunctions(this,true);
 
-	var constructors = this.constructors || [this];
+	var constructors = this._constructors || [this];
 	var DerivedClass = function(){};
 
 	paramChannel = paramQuery ? Class._paramQuery(paramQuery) : Class._paramQuery.proxy.bind(this);
-	var paramChannels = (this.paramChannels || []).concat([paramChannel]);
+	var paramChannels = (this._paramChannels || []).concat([paramChannel]);
 	paramChannel.parent = paramChannels.length;
 
 	var t = Class._constructor.bind(childConstructor,childConstructor,constructors,DerivedClass,paramChannels);
@@ -283,10 +299,10 @@ Function.prototype.derived = function(childConstructor,paramQuery){
 	childConstructor._caller = t;
 	t._supers = [this];
 	Class._provideBasicFunctions(t,false,t);
-	t.constructors = constructors.concat([childConstructor]);
+	t._constructors = constructors.concat([childConstructor]);
 	t._prototype = DerivedClass;
 	t._prototype.prototype = this._prototype && this._prototype.prototype || {};
-	t.paramChannels = paramChannels; // avoid GC delete
+	t._paramChannels = paramChannels; // avoid GC delete
 
 	Class._inherits(t,this);
 
@@ -320,16 +336,16 @@ Function.prototype.inherits = function(parents,paramQuery)
 		}
 
 
-		var paramChannels = (this.paramChannels || []),
+		var paramChannels = (this._paramChannels || []),
 			constructors = [],
 			pChannels = paramChannel ? paramChannel : Array.prototype.slice.call(arguments,1),
 			prototype = {};
 
 		for(var i=0;i<parents.length;i++)
 		{
-			constructors = constructors.concat(typeof(parents[i].constructors)!='undefined' ? parents[i].constructors : [parents[i]]);
+			constructors = constructors.concat(typeof(parents[i]._constructors)!='undefined' ? parents[i]._constructors : [parents[i]]);
 			Class._provideBasicFunctions(parents[i],true);
-			paramChannels = paramChannels.concat(parents[i].paramChannels || []).concat([null]);
+			paramChannels = paramChannels.concat(parents[i]._paramChannels || []).concat([null]);
 			if(parents[i]._prototype && parents[i]._prototype.prototype)
 			for(var p in parents[i]._prototype.prototype)
 				prototype[p] = parents[i]._prototype.prototype[p];
@@ -355,10 +371,10 @@ Function.prototype.inherits = function(parents,paramQuery)
 		t._supers = parents;
 		t._classNames = classNames;
 
-		t.constructors = constructors.concat([this]);
+		t._constructors = constructors.concat([this]);
 		t._prototype = MultiDerivedClass;
 		t._prototype.prototype = prototype;
-		t.paramChannels = paramChannels; // avoid GC delete
+		t._paramChannels = paramChannels; // avoid GC delete
 
 		for(var i=0;i<parents.length;i++)
 			Class._inherits(t,parents[i]);
@@ -397,9 +413,7 @@ Class._paramQuery = function(query){
 		query[0] = "()";
 
 	query[1] = trim(query[1]);
-	var tmp;
-	eval("tmp = function"+query[0]+"{return ["+query[1].substring(query[1].indexOf('(')+1,query[1].lastIndexOf(')'))+"];}");
-	return tmp;
+	return eval("(function"+query[0]+"{return ["+query[1].substring(query[1].indexOf('(')+1,query[1].lastIndexOf(')'))+"];})");
 };
 
 Class._paramQuery.proxy = function(){return Array.prototype.slice.call(arguments)};
