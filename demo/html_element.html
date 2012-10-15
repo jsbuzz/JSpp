@@ -15,7 +15,7 @@
 		/**
 		* DOMNode class
 		*/
-		var DOMNode = Class(function(tag,text,attributes,parent){
+		var DOMNode = function(tag,text,attributes,parent){
 			_DEBUG && console.info('DOMNode::constructor()');
 			this.tag = tag;
 			this.attributes = attributes || [];
@@ -50,13 +50,13 @@
 
 				return this;
 			};
-		});
+		};
 
 		
 		/**
 		* Div : DOMNode
 		*/
-		var Div = Class(DOMNode).derived(function(text,attributes,parent){
+		var Div = DOMNode.derived(function(text,attributes,parent){
 			_DEBUG && console.info('Div::constructor()');
 		},"(text,attributes,parent)=>DOMNode('div',text,attributes,parent)");
 
@@ -64,7 +64,7 @@
 		/**
 		* ErrorDiv : Div
 		*/
-		var ErrorDiv = Class(Div).derived(function(text,parent){
+		var ErrorDiv = Div.derived(function(text,parent){
 			_DEBUG && console.info('ErrorDiv::constructor()');
 			},//params:
 			Class.paramsFrom('text,parent')
