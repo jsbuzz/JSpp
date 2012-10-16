@@ -66,9 +66,31 @@ Class._provideBasicFunctions = function(fn,_prototype,_bind){
 		if(typeof(fn.prototype)!='object')
 			fn.prototype={};
 			
+		fn.prototype.scope = Class._scope;
+		fn.prototype.protected = Class._protected;
 		fn.prototype.instanceOf = Class.prototype.instanceOf;
 		fn.prototype.super = Class.prototype.super;
 	}
+};
+
+Class._scope = function(name,scope){
+	var me = this;
+	me[name] || (me[name] = {});
+
+	for(var p in scope)
+		me[name][p] = scope[p];
+
+	return me[name];
+};
+
+Class._protected = function(scope){
+	if(this.protected == Class._protected)
+		this.protected = Class._protected.bind(this);
+
+	for(var p in scope)
+		this.protected[p] = scope[p];
+
+	return this.protected;
 };
 
 

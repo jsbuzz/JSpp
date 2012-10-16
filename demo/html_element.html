@@ -21,20 +21,21 @@
 			this.attributes = attributes || [];
 			this.parent = parent;
 			this.children = [];
-
-
-			// private node
-			var node = typeof(tag)=='string' ? $('<'+tag+'>'+(text || '')+'</'+tag+'>') : $(tag);
 			
-			node.data('DOMNode',this);
+			// protected node
+			var protected = this.protected({
+				node : typeof(tag)=='string' ? $('<'+tag+'>'+(text || '')+'</'+tag+'>') : $(tag),
+			});
+			
+			protected.node.data('DOMNode',this);
 
 			// set attributes
 			for(var i in attributes)
-				node.attr(i,attributes[i]);
+				protected.node.attr(i,attributes[i]);
 
-			// private node getter
+			// protected node getter
 			this.node = function(){
-				return node;
+				return protected.node;
 			};
 
 			// show()
@@ -45,8 +46,11 @@
 
 			// append(newNode)
 			this.append = function(newNode){
+				if(!Class.instanceOf(newNode,DOMNode))
+					throw new Error("DOMNode::append requires parameter to be DOMNode");
+
 				this.children.push(newNode);
-				node.append(newNode.node());
+				protected.node.append(newNode.protected.node);
 
 				return this;
 			};
@@ -73,15 +77,7 @@
 				.to('parent') // parent
 		);
 
-/* this looks fine as well:
-		Class.paramHandler('(text,parent)=>(text,attributes,parent)')
-			.values({
-				text: '@text',
-				attributes: {style:"border:1px solid red;padding:3px;margin:3px;font-weight:bold"},
-				parent: '@parent'
-			});
-*/
-		
+
 		/**
 		* Img : DOMNode
 		*/
@@ -90,8 +86,22 @@
 			
 			this.src = src;
 
-		}.inherits(DOMNode,
-		'(src,attributes,parent)=>DOMNode("img","",$.extend(attributes,{src:src}),parent)');
+		}.inherits(
+			DOMNode,'(src,attributes,parent)=>DOMNode("img","",$.extend(attributes,{src:src}),parent)');
+		
+		
+		/**
+		* decorator : static class
+		* Using Class() to add the basic Class methods to a function and calling the extendStatic method to add functions
+		*/
+		var decorator = function(tag,txt){
+			return "<"+tag+">"+txt+"</"+tag+">";
+		};
+		Class(decorator).extendStatic({
+			strong : decorator.bind(null,'strong'),
+			italic : decorator.bind(null,'i'),
+			underline : decorator.bind(null,'u')
+		});
 
 
 		//-----------------------------------------------------------------------------------------
@@ -102,7 +112,7 @@
 			body = new DOMNode(document.body);
 
 			wrapper = new Div('',{style:'border:1px dotted #999'});
-			firstDiv = new Div("I'm the first",{style:'padding:6px'});
+			firstDiv = new Div("I'm the "+decorator.strong("first"),{style:'padding:6px'});
 			errorDiv = new ErrorDiv("I'm an error message");
 			jQuery_wrapper = new Div('',{style:'background-color:#0f1923;padding:6px'});
 			jQuery_logo = new Img('http://static.jquery.com/files/rocker/images/logo_jquery_215x53.gif');
@@ -114,7 +124,7 @@
 					.append(jQuery_wrapper
 						.append(jQuery_logo))
 			);
-			
+/*			
 		var limit = 1000;
 		var started = (new Date()).getTime();
 		cc = new Array(limit);
@@ -122,7 +132,7 @@
 			cc[i] = new ErrorDiv('');
 
 		console.info("# done in "+((new Date()).getTime() - started)+" ms");
-
+*/
 		});
 
 

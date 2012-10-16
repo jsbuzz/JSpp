@@ -61,13 +61,10 @@
 	*/
 	var A = function(a){
 			_DEBUG && debug('A::constructor('+Array.prototype.join.call(arguments)+')');
-			
-			var private_a;
-			
+
 			this.setMyVariables = function(a){
 				_DEBUG && debug('	A::setMyVariables('+Array.prototype.join.call(arguments)+')');
 				this.a = a;
-				this.setPrivate('a',a);
 			};
 
 			if(a!==undefined)
@@ -81,8 +78,6 @@
 	var B = A.derived(function(a,b){
 			_DEBUG && debug('B::constructor('+Array.prototype.join.call(arguments)+')');
 			
-			var private_b;
-			
 			this.setMyVariables = function(a,b){
 				_DEBUG && debug('	B::setMyVariables('+Array.prototype.join.call(arguments)+')');
 
@@ -91,7 +86,6 @@
 
 				this.super('setMyVariables',a);
 				this.b = b;
-				this.setPrivate('b',b);
 			};
 			
 			if(a!==undefined)
@@ -107,8 +101,6 @@
 	var C = B.derived(function(a,b,c){
 			_DEBUG && debug('C::constructor('+Array.prototype.join.call(arguments)+')');
 
-			var private_c;
-
 			this.setMyVariables = function(a,b,c){
 				_DEBUG && debug('	C::setMyVariables('+Array.prototype.join.call(arguments)+')');
 
@@ -117,7 +109,6 @@
 
 				this.super('setMyVariables',a,b);
 				this.c = c;
-				this.setPrivate('c',c);
 			};
 			
 			if(a!==undefined)
@@ -172,12 +163,9 @@
     var A = function(a){
             _DEBUG && debug('A::constructor('+Array.prototype.join.call(arguments)+')');
             
-            var private_a;
-            
             this.setMyVariables = function(a){
                 _DEBUG && debug('    A::setMyVariables('+Array.prototype.join.call(arguments)+')');
                 this.a = a;
-                this.setPrivate('a',a);
             };
 
             if(a!==undefined)
@@ -190,9 +178,7 @@
     */
     var B = A.derived(function(a,b){
             _DEBUG && debug('B::constructor('+Array.prototype.join.call(arguments)+')');
-            
-            var private_b;
-            
+
             this.setMyVariables = function(a,b){
                 _DEBUG && debug('    B::setMyVariables('+Array.prototype.join.call(arguments)+')');
 
@@ -201,7 +187,6 @@
 
                 this.super('setMyVariables',a);
                 this.b = b;
-                this.setPrivate('b',b);
             };
             
             if(a!==undefined)
@@ -217,8 +202,6 @@
     var C = B.derived(function(a,b,c){
             _DEBUG && debug('C::constructor('+Array.prototype.join.call(arguments)+')');
 
-            var private_c;
-
             this.setMyVariables = function(a,b,c){
                 _DEBUG && debug('    C::setMyVariables('+Array.prototype.join.call(arguments)+')');
 
@@ -227,7 +210,6 @@
 
                 this.super('setMyVariables',a,b);
                 this.c = c;
-                this.setPrivate('c',c);
             };
             
             if(a!==undefined)
@@ -238,15 +220,7 @@
 
     // extend showOff :)
     A.extend({
-        showMe : function(){debug(this)},
-        
-        getPrivate : function(varName){
-            return eval('(private_'+varName+')');
-        },
-        
-        setPrivate : function(varName,value){
-            return eval('private_'+varName+'='+value);
-        }
+        showMe : function(){debug(this)}
     },true);
 	</pre>
 </body>
