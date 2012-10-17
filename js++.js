@@ -457,14 +457,38 @@ Class.paramsFrom = function(paramList){
 
 Class.interface = function(){
 
-	Class._lastCreated = function CLASS_INTERFACE(methods){return methods;};
-	var methods = {};
+	var implementation = '';
 	
 	for(var i=0;i<arguments.length;i++)
 	{
-		var method = arguments[i];
-		methods[method] = function(){throw new Error('Interface method is not implemented!')};
+		implementation += 'this.'+arguments[i]+'=function(){throw new Error("Interface method '+arguments[i]+'() is not implemented!")};\n';
 	}
-		
-	return Class._lastCreated.bind(null,methods);
+	Class._lastCreated = new Function(implementation);
+	Class._lastCreated._methods = Array.prototype.slice.call(arguments);
+	Class._lastCreated.check = Class.interface.check.bind(Class._lastCreated);
+	
+	return Class._lastCreated;
 };
+
+Class.interface.check = function(throwException){
+	var methods = {},
+	    model = new this;
+
+	for(var i in this._methods)
+		methods[this._methods[i]] = model[this._methods[i]];
+
+	for(var c=0;c < this._childClasses.length;c++)
+	{
+		this._childClasses[c]._instance || (this._childClasses[c]._instance = new this._childClasses[c]);
+		for(var method in methods)
+		{
+			if(this._childClasses[c]._instance[method].toString()==methods[method].toString())
+			{
+				if(throwException)
+					model[method]();
+				return false;
+			}
+		}
+	}
+	return true;
+}

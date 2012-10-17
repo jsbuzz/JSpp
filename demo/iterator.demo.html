@@ -45,7 +45,8 @@
 		'current',
 		'key',
 		'next',
-		'valid'
+		'valid',
+		'plusOne' // this will throw error on Iterator.check()
 	);
 
 
@@ -168,10 +169,10 @@
 	.inherits(Iterator);
 	
 	
-	/** *************************************************************************************************************** ConditionedObjectIterator
-	* class ConditionedObjectIterator : ObjectIterator
+	/** *************************************************************************************************************** FilteredObjectIterator
+	* class FilteredObjectIterator : ObjectIterator
 	*/
-	var ConditionedObjectIterator = function(target,condition){
+	var FilteredObjectIterator = function(target,condition){
 
 		// overwrite protected scope
 		this.protected.target = target;
@@ -186,19 +187,19 @@
 	
 	
 	/** *************************************************************************************************************** PropertyIterator
-	* class PropertyIterator : ConditionedObjectIterator
+	* class PropertyIterator : FilteredObjectIterator
 	*/
 	var PropertyIterator = function(target){}
 		.inherits(
-			ConditionedObjectIterator,
+			FilteredObjectIterator,
 			/* as */ function(target){return [target,function(t){return typeof(t)!="function"}]}
 		);
 
 
 	/** *************************************************************************************************************** MethodIterator
-	* class MethodIterator : ConditionedObjectIterator
+	* class MethodIterator : FilteredObjectIterator
 	*/
-	var MethodIterator = function(target){}.inherits(ConditionedObjectIterator,
+	var MethodIterator = function(target){}.inherits(FilteredObjectIterator,
 		'(target)=>(target,function(t){return typeof(t)=="function"})');
 
 
