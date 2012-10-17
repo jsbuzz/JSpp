@@ -416,6 +416,9 @@ Function.prototype.inherits = function(parents,paramQuery)
 */
 Class._paramQuery = function(query){
 
+	if(typeof(query)=='function')
+		return query;
+	
 	function trim(str)
 	{
 		return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
@@ -450,3 +453,18 @@ Class.paramsFrom = function(paramList){
 		}
 	};
 }
+
+
+Class.interface = function(){
+
+	Class._lastCreated = function CLASS_INTERFACE(methods){return methods;};
+	var methods = {};
+	
+	for(var i=0;i<arguments.length;i++)
+	{
+		var method = arguments[i];
+		methods[method] = function(){throw new Error('Interface method is not implemented!')};
+	}
+		
+	return Class._lastCreated.bind(null,methods);
+};
