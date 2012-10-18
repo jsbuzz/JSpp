@@ -22,22 +22,8 @@
 * Class - basic functionality
 */
 
-/** ***************************************************************************************************************** Class::constructor
+/** ******************************************************************************************************************* Class::constructor
 * You can use this function to improve readibility of your code or to use multiple ancestors for a new class.
-* e.g.: 
-*		var A = Class(function(){
-*			...
-*		});
-*
-*	// simple inheritance
-*		var B = Class(A).derived(function(){
-*			...
-*		});
-*
-*	// multiple inheritance
-*		var C = Class([A,B]).derived(function(){
-*			...
-*		});
 */
 var Class = function(fn){
 	if(typeof(fn)== 'function')
@@ -52,8 +38,8 @@ var Class = function(fn){
 };
 
 
-/** ***************************************************************************************************************** Class::_provideBasicFunctions
-* Give OOP functionality to a function - and to its prototype
+/** ******************************************************************************************************************* Class::_provideBasicFunctions
+* Give basic js++ functionality to a function - and to its prototype
 */
 Class._provideBasicFunctions = function(fn,_prototype,_bind){
 	fn.extend || (fn.extend = _bind ? Class.extend.bind(_bind) : Class.extend);
@@ -73,42 +59,22 @@ Class._provideBasicFunctions = function(fn,_prototype,_bind){
 	}
 };
 
-Class._scope = function(name,scope){
-	var me = this;
-	me[name] || (me[name] = {});
 
-	for(var p in scope)
-		me[name][p] = scope[p];
-
-	return me[name];
-};
-
-Class._protected = function(scope){
-	if(this.protected == Class._protected)
-		this.protected = Class._protected.bind(this);
-
-	for(var p in scope)
-		this.protected[p] = scope[p];
-
-	return this.protected;
-};
-
-
-/** ***************************************************************************************************************** Class::_lastCreated
+/** ******************************************************************************************************************* Class::_lastCreated
 * garbage collector issue fix. We need a global scope for creating the inherited objects 
 * otherwise the GC kills the object after the constructor finishes.
 */
 Class._lastCreated = null;
 
 
-/** ***************************************************************************************************************** Class::_applyConstructor
+/** ******************************************************************************************************************* Class::_applyConstructor
 * this function applies the given constructor on the object. It also merges the return values and the prototypes.
 */
 Class._applyConstructor = function(fn,obj,args,constructor){
 	constructor.prototype || (constructor.prototype = {});
 	for(var i in fn.prototype)
 		constructor.prototype[i] = fn.prototype[i];
-	var returnValues = fn.apply(obj,args); // return {...} type of constructor ready :)
+	var returnValues = fn.apply(obj,args); // return {...} type of constructor ready
 	for(var i in returnValues)
 	{
 		if(typeof(returnValues[i])!=='undefined')
@@ -117,8 +83,8 @@ Class._applyConstructor = function(fn,obj,args,constructor){
 }
 
 
-/** ***************************************************************************************************************** Class::_constructor
-* This is the constructor replacement for inherited objects. The function applies all the inherited constructors 
+/** ******************************************************************************************************************* Class::_constructor
+* This is the constructor replacement for derived classes. The function applies all the inherited constructors 
 * on the object in the right order.
 */
 Class._constructor = function(child,parents,constructor,paramChannels)
@@ -144,7 +110,8 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 
 
 
-/** ***************************************************************************************************************** Class::applyTo
+/** ******************************************************************************************************************* Class::applyTo
+* under construction :)
 */
 /*Class.applyTo = function(object)
 {
@@ -155,21 +122,57 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 }*/
 
 
+/** ******************************************************************************************************************* Class::_scope
+* This is a useful method to add/extend custom scopes to your class to separate submodules
+*/
+Class._scope = function(scope,addendum){
+	var me = this;
+	me[scope] || (me[scope] = {});
+
+	for(var p in addendum)
+		me[scope][p] = scope[p];
+
+	return me[scope];
+};
+
+
+/** ******************************************************************************************************************* Class::_protected
+* The protected scope is the container for those properties/methods which need to be inheritable but shouldn't be
+* reachable as object.property - they are still reachable but only by typing object.protected.property
+* Using the protected scope is improves your code's readability and consistency
+*/
+Class._protected = function(scope){
+	if(this.protected == Class._protected)
+		this.protected = Class._protected.bind(this);
+
+	for(var p in scope)
+		this.protected[p] = scope[p];
+
+	return this.protected;
+};
 
 
 
-/** ***************************************************************************************************************** Class::_inherits
-* This method links the child and parent classes in the inheritance chain.
+
+/** ******************************************************************************************************************* Class::_inherits
+* This method links the child and parent classes in the inheritance chain and provides inheritance of the static
+* properties/methods
 */
 Class._inherits = function(child,parent)
 {
 	(parent._childClasses || (parent._childClasses=[])).push(child);
 	(child._ancestors || (child._ancestors=[])).push(parent);
+
+	for(var i in parent._static)
+	{
+		child[i] = parent[i];
+		(child._static || (child._static = {})) && (child._static[i] = i);
+	}
 }
 
 
-/** ***************************************************************************************************************** Class.prototype::super
-* access to the super class' methods
+/** ******************************************************************************************************************* Class.prototype::super
+* access to the super class' methods (only the methods not the properties!)
 */
 Class.prototype.super = function()
 {
@@ -220,8 +223,8 @@ Class.prototype.super = function()
 
 
 
-/** ***************************************************************************************************************** Class::instanceOf and Class.prototype::instanceOf
-* This is the replacement for the JS instanceof operator.
+/** ******************************************************************************************************************* Class::instanceOf and Class.prototype::instanceOf
+* This is the replacement for the native instanceof operator.
 */
 Class.instanceOf = function(child,parent){return Class.prototype.instanceOf.call(child,parent)};
 Class.prototype.instanceOf = function(parent){
@@ -250,7 +253,7 @@ Class.prototype.instanceOf = function(parent){
 
 
 
-/** ***************************************************************************************************************** Class::extend
+/** ******************************************************************************************************************* Class::extend
 * This method is for extending all instances of a class on the fly.
 * Use the recursive option to apply the extension on every derived class' instance as well.
 */
@@ -270,19 +273,26 @@ Class.extend = function(addendum,recursive){
 };
 
 
-/** ***************************************************************************************************************** Class::extendStatic
+/** ******************************************************************************************************************* Class::extendStatic
 * This method is for extending the class itself.
-* Use the recursive option to apply the extension on every derived class.
+* Use the recursive option to apply the extension on every derived class and make the contents 
+* of the addendum inheritable.
 */
 Class.extendStatic = function(addendum,recursive){
 
 	for (var i in addendum)
+	{
 		this[i] = addendum[i];
+		if(recursive)
+			(this._static || (this._static = {})) && (this._static[i] = i);
+	}
 
 	if(recursive)
 	{
 		for (var i in this._childClasses)
+		{
 			this._childClasses[i].extendStatic(addendum,true);
+		}
 	}
 
 	return this;
@@ -290,12 +300,12 @@ Class.extendStatic = function(addendum,recursive){
 
 
 
-/********************************************************************************************************************
+/**********************************************************************************************************************
 * Function.prototype - extension to all functions
 */
 
 
-/** ***************************************************************************************************************** Function.prototype.derived
+/** ******************************************************************************************************************* Function.prototype.derived
 * This way any function can be the ancestor of others.
 * fixedParams is used to call the ancestor's cosntructor with predefined parameters. 
 * This way you can specialize thru inheritance.
@@ -332,7 +342,7 @@ Function.prototype.derived = function(childConstructor,paramQuery){
 }
 
 
-/** ***************************************************************************************************************** Function.prototype.inherits
+/** ******************************************************************************************************************* Function.prototype.inherits
 * The same as derived, but from the other side
 */
 Function.prototype.inherits = function(parents,paramQuery)
@@ -411,7 +421,7 @@ Function.prototype.inherits = function(parents,paramQuery)
 
 
 
-/** ***************************************************************************************************************** param handling
+/** ******************************************************************************************************************* param handling
 * These tools are made for the readable and smart parameter passing
 */
 Class._paramQuery = function(query){
@@ -441,8 +451,14 @@ Class._paramQuery = function(query){
 	return eval("(function"+query[0]+"{return ["+query[1].substring(query[1].indexOf('(')+1,query[1].lastIndexOf(')'))+"];})");
 };
 
+/**
+* This is the default paramChannel which is transparent to parameters
+*/
 Class._paramQuery.proxy = function(){return Array.prototype.slice.call(arguments)};
 
+/**
+* This is the paramsFrom .to* syntax handler. Sometimes it is more readable than the paramQueries
+*/
 Class.paramsFrom = function(paramList){
 	return {
 		paramsFrom: paramList,
@@ -455,10 +471,13 @@ Class.paramsFrom = function(paramList){
 }
 
 
+/** ******************************************************************************************************************* Class.interface
+* This toolkit is for creating interfaces - abstract method packages for modelling a functionality
+*/
 Class.interface = function(){
 
 	var implementation = '';
-	
+
 	for(var i=0;i<arguments.length;i++)
 	{
 		implementation += 'this.'+arguments[i]+'=function(){throw new Error("Interface method '+arguments[i]+'() is not implemented!")};\n';
@@ -468,10 +487,14 @@ Class.interface = function(){
 	Class._lastCreated.check = Class.interface.check.bind(Class._lastCreated);
 
 	Class._provideBasicFunctions(Class._lastCreated,true);
-	
+
 	return Class._lastCreated;
 };
 
+
+/** ******************************************************************************************************************* Class.interface.check
+* This tool is for checking an interface if all its methods are implemented.
+*/
 Class.interface.check = function(throwException){
 	var methods = {},
 	    model = new this;

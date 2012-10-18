@@ -19,11 +19,10 @@
 
 	}).extendStatic({
 	//# static methods
-		
-		//----------------------------------------------- Iterator.foreach(fn)
+	//-------------------------------------------------------------------------------------------- Iterator.foreach(fn)
 		foreach : function(iterator,action){
-			if(!Class.instanceOf(iterator,Iterator))
-				iterator = Iterator.for(iterator);
+			if(!Class.instanceOf(iterator,this))
+				iterator = this.for(iterator);
 
 			var step = 0,
 			    returnValue = {};
@@ -32,10 +31,14 @@
 				if(action(iterator,step++,returnValue) === false) // break on false result
 					break;
 			}
-			return returnValue;
+			// if anything is added to the returnValue
+			for(var i in returnValue)
+				return returnValue;
+
+			return undefined;
 		},
 		
-		//----------------------------------------------- Iterator.for(target)
+	//-------------------------------------------------------------------------------------------- Iterator.for(target)
 		for : function(target){
 			
 			// for future compatibility
@@ -46,12 +49,21 @@
 					return tmp;
 			}
 
-			if(target instanceof Array)
-				return new ArrayIterator(target);
+			if(this==Iterator)
+			{
+				if(target instanceof Array)
+					return new ArrayIterator(target);
 
-			return new ObjectIterator(target);
-		}
-	});
+				return new ObjectIterator(target);
+			}
+			return new this(target);
+		},
+		
+	//--------------------------------------------------------------------------------------------- Iterator.instance()
+		instance : function(target){ return new this(target) }
+
+	},true // recursive=true -> all derived classes will inherit these static methods
+	);
 
 	
 	/** *************************************************************************************************************** ReversibleIterator
@@ -61,7 +73,8 @@
 		'previous',
 		'reverse'
 	)
-	.inherits(Iterator)
+	.inherits(Iterator);
+
 
 	/** *************************************************************************************************************** ArrayIterator
 	* class ArrayIterator : ReversibleIterator
@@ -70,12 +83,11 @@
 
 		// protected scope
 		this.protected({
-				target   : target,
-				position : 0,
-			});
+			target   : target,
+			position : 0,
+		});
 
-
-		// methods
+		// Iterator methods
 		this.getTarget = function(){ return this.protected.target; };
 		this.rewind    = function(){ this.protected.position = 0; return this; };
 		this.reverse   = function(){ this.protected.position = this.protected.target.length-1; return this; };
@@ -95,18 +107,21 @@
 		
 		// protected scope
 		this.protected({
-				target   : target,
-		    keys     : [],
-				position : 0,
-			});
+			target   : target,
+			keys     : [],
+			position : 0,
+		});
 
-		// map keys
-		for(var i in target)
-			this.protected.keys.push(i);
+		// 
+		this.cacheKeys = function(){ 
+			this.protected.keys = [];
+			for(var i in this.protected.target)
+				this.protected.keys.push(i);
+		};
 
-		// methods
+		// Iterator methods
 		this.getTarget = function(){ return this.protected.target; };
-		this.rewind    = function(){ this.protected.position = 0; return this; };
+		this.rewind    = function(){ this.cacheKeys();this.protected.position = 0; return this; };
 		this.reverse   = function(){ this.protected.position = this.protected.keys.length-1; return this; };
 		this.current   = function(){ return this.protected.target[this.protected.keys[this.protected.position]] };
 		this.key       = function(){ return this.protected.keys[this.protected.position] };
@@ -122,16 +137,22 @@
 	*/
 	var FilteredObjectIterator = function(target,condition){
 
-		// overwrite protected scope
-		this.protected.target = target;
-		this.protected.condition = condition;
-		for(var i in target)
-		{
-			if(condition(target[i]))
-				this.protected.keys.push(i);
-		}
+		// extend protected scope
+		this.protected({
+			condition : condition
+		});
+		
+		// overload cacheKeys
+		this.cacheKeys = function(){ 
+			this.protected.keys = [];
+			for(var i in this.protected.target)
+			{
+				if(this.protected.condition(this.protected.target[i]))
+					this.protected.keys.push(i);
+			}
+		};
 	}
-	.inherits(ObjectIterator,'(target,condition)=>ObjectIterator()');
+	.inherits(ObjectIterator);
 	
 	
 	/** *************************************************************************************************************** PropertyIterator
@@ -161,10 +182,10 @@
 
 		// protected scope
 		this.protected({
-				target   : element || document,
+			target   : element || document,
 		    current  : element,
-				depth    : 0
-			});
+			depth    : 0
+		});
 
 
 		// methods
@@ -173,31 +194,35 @@
 		this.current   = function(){ return this.protected.current };
 		this.key       = function(){ return this.protected.current.tagName };
 		this.next      = function(){
-			
+
 			if(!this.protected.current)
 				return this;
 
 			var current = this.protected.current; // shorter alias
 
+			// first try to go down
 			if(current.childElementCount)
 			{
 				current = current.firstElementChild;
 				this.protected.depth++;
 			}
+			// then to the next sibling
 			else if(current.nextElementSibling)
 			{
 				current = current.nextElementSibling;
 			}
+			// then try to climb up
 			else
 			{
-				while(current && current!=this.protected.target)
+				while(current && current!=this.protected.target && current!=this.protected.target.parentNode)
 				{
 					this.protected.depth--;
 					current = current.parentElement;
 					if(current && current.nextElementSibling)
 						break;
 				}
-				if(!current || current==this.protected.target)
+				// if we reached the end of the structure/subtree
+				if(!current || current==this.protected.target || current==this.protected.target.parentNode)
 					current = null;
 				else
 					current = current.nextElementSibling;
@@ -205,13 +230,40 @@
 			this.protected.current = current;
 			return this;
 		};
-		
+
 		this.valid   = function(){ return this.protected.current };
 		this.depth   = function(){ return this.protected.depth };
 
 	}.inherits(Iterator);
 
-	
+
+	/**
+	* Iterator modifiers
+	* These modifiers are used to modify default iterator behavior.
+	* In case of chaining modifiers always use them in the following order to avoid any incompatibilities:
+	*  [Infinite] [Odd|Even] [Reverse]
+	*/
+
+
+	/** *************************************************************************************************************** Infinite modifier
+	* Infinite modifier
+	*/
+	var Infinite = function(iterator){
+
+		var instance = iterator.clone();
+
+		instance.clone = function(){return this}; // modifier chainability
+		instance.valid_Infinite = instance.valid;
+		instance.valid = function(){
+			if(!this.valid_Infinite())
+				this.rewind();
+			return true;
+		};
+
+		return instance;
+	};
+
+
 	/** *************************************************************************************************************** Odd modifier
 	* Odd modifier
 	*/
@@ -224,6 +276,7 @@
 		instance.next = function(){
 			for(var i=0;i<2;i++)
 				this.next_Odd();
+			return this;
 		};
 
 		return instance;
@@ -249,31 +302,13 @@
 		instance.next = function(){
 			for(var i=0;i<2;i++)
 				this.next_Even();
+			return this;
 		};
 
 		return instance;
 	};
 
 
-	/** *************************************************************************************************************** Infinite modifier
-	* Infinite modifier
-	*/
-	var Infinite = function(iterator){
-
-		var instance = iterator.clone();
-
-		instance.clone = function(){return this}; // modifier chainability
-		instance.valid_Infinite = instance.valid;
-		instance.valid = function(){
-			if(!this.valid_Infinite())
-				this.rewind();
-			return true;
-		};
-
-		return instance;
-	};
-
-	
 	/** *************************************************************************************************************** Reverse modifier
 	* Reverse modifier
 	*/
@@ -286,15 +321,7 @@
 
 		instance.clone = function(){return this}; // modifier chainability
 		instance.next = instance.previous;
-		instance.rewind_Reverse = instance.rewind;
 		instance.rewind = instance.reverse;
 
 		return instance;
 	};
-	
-	/** *************************************************************************************************************** Iterator static functions
-	* Iterator static functions
-	*/
-	Iterator.extendStatic({
-		instance : function(target){ return new this(target) }
-	},true);
