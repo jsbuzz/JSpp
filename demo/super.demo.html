@@ -52,8 +52,6 @@
  A._instance instead of the current one. It is because of the declaration scope.
  
  So this current version [1.0 | 2012-10-11] doesn't support the private setters and getters with the super() method.
- 
- But the ugly method pair getPrivate/setPrivate works fine for the same reason.
 */
 
 	/**
@@ -119,15 +117,7 @@
 
 	// extend showOff :)
 	A.extend({
-		showMe : function(){debug(this)},
-		
-		getPrivate : function(varName){
-			return eval('(private_'+varName+')');
-		},
-		
-		setPrivate : function(varName,value){
-			return eval('private_'+varName+'='+value);
-		}
+		showMe : function(){debug(this)}
 	},true);
 
 
