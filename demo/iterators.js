@@ -3,6 +3,7 @@
 	* Iterator interface
 	*/
 	var Iterator = Class.interface(
+	//# abstract methods
 		'rewind',
 		'current',
 		'key',
@@ -10,69 +11,60 @@
 		'valid',
 		'getTarget',
 		'plusOne' // this will throw error on Iterator.check(true)
-	);
 
+	).extend({
+	//# virtual methods
+		foreach : function(action){ return Iterator.foreach(this,action) },
+		clone   : function(){ return new this.constructor(this.getTarget()) }
 
-	/**
-	* Iterator.foreach
-	*/
-	Iterator.foreach = function(iterator,action){
-		if(!Class.instanceOf(iterator,Iterator))
-			iterator = new ObjectIterator(iterator);
+	}).extendStatic({
+	//# static methods
+		
+		//----------------------------------------------- Iterator.foreach(fn)
+		foreach : function(iterator,action){
+			if(!Class.instanceOf(iterator,Iterator))
+				iterator = Iterator.for(iterator);
 
-		for(iterator.rewind();iterator.valid();iterator.next())
-		{
-			if(action(iterator) === false) // break on false result
-				break;
-		}
-	};
-
-
-	/** *************************************************************************************************************** $AccessModel
-	* $AccessModel class
-	*/
-	var $AccessModel = function(){
-
-		this.$ = function(access,set)
-		{
-			var me = this;
-			if(typeof(me[access])!='undefined')
-				return set===undefined ? me[access] : (me[access]=set);
-			if(typeof(me.protected[access])!='undefined')
-				return set===undefined ? me.protected[access] : (me.protected[access]=set);
-			
-			throw new Error('$ Access to undefined property: '+access);
-		};
-
-		this.$$ = function(query){
-			var varName = query,
-			    operatorPos = query.length,
-					me = this;
-			
-			for(var i=0;i<query.length;i++)
+			var step = 0,
+			    returnValue = {};
+			for(iterator.rewind();iterator.valid();iterator.next())
 			{
-				if(!query.charAt(i).match(/\w/))
-				{
-					varName=varName.substr(0,i);
-					operatorPos=i;
+				if(action(iterator,step++,returnValue) === false) // break on false result
 					break;
-				}
 			}
-			if(typeof(me[varName])!='undefined')
-				varName = 'this.'+varName;
-			else if(typeof(me.protected[varName])!='undefined')
-				varName = 'this.protected.'+varName;
-			else
-				throw new Error('$$ Access to undefined property: '+varName);
+			return returnValue;
+		},
+		
+		//----------------------------------------------- Iterator.for(target)
+		for : function(target){
+			
+			// for future compatibility
+			if(typeof(target)=='object' && typeof(target.getIterator)=='function')
+			{
+				var tmp = target.getIterator();
+				if(Class.instanceOf(tmp,Iterator))
+					return tmp;
+			}
 
-			return eval('('+varName+query.substr(operatorPos)+')');
-		};
+			if(target instanceof Array)
+				return new ArrayIterator(target);
 
-	};
+			return new ObjectIterator(target);
+		}
+	});
 
+	
+	/** *************************************************************************************************************** ReversibleIterator
+	* ReversibleIterator : Iterator
+	*/
+	var ReversibleIterator = Class.interface(
+		'previous',
+		'reverse'
+	)
+	.inherits(Iterator)
 
 	/** *************************************************************************************************************** ArrayIterator
-	* class ArrayIterator : Iterator,$AccessModel
+	* class ArrayIterator : ReversibleIterator
 	*/
 	var ArrayIterator = function(target){
 
@@ -84,37 +76,20 @@
 
 
 		// methods
-		this.getTarget = function(){
-			return this.$('target');
-		};
+		this.getTarget = function(){ return this.protected.target; };
+		this.rewind    = function(){ this.protected.position = 0; return this; };
+		this.reverse   = function(){ this.protected.position = this.protected.target.length-1; return this; };
+		this.current   = function(){ return this.protected.target[this.protected.position] };
+		this.key       = function(){ return this.protected.position };
+		this.previous  = function(){ this.protected.position--; return this; };
+		this.next      = function(){ this.protected.position++; return this; };
+		this.valid     = function(){ return this.protected.position>=0 && this.protected.position<this.protected.target.length };
 
-		this.rewind = function(){
-			this.$$('position=0');
-			return this;
-		};
-
-		this.current = function(){
-			return this.$('target')[this.$('position')]
-		};
-
-		this.key = function(){
-			return this.$('position')
-		};
-
-		this.next = function(){
-			this.$$('position++');
-			return this;
-		};
-
-		this.valid = function(){
-			return this.$('position') < this.$('target').length
-		};
-
-	}.inherits([Iterator,$AccessModel]);
+	}.inherits(ReversibleIterator);
 
 	
 	/** *************************************************************************************************************** ObjectIterator
-	* class ObjectIterator : Iterator
+	* class ObjectIterator : ReversibleIterator
 	*/
 	var ObjectIterator = function(target){
 		
@@ -132,12 +107,14 @@
 		// methods
 		this.getTarget = function(){ return this.protected.target; };
 		this.rewind    = function(){ this.protected.position = 0; return this; };
+		this.reverse   = function(){ this.protected.position = this.protected.keys.length-1; return this; };
 		this.current   = function(){ return this.protected.target[this.protected.keys[this.protected.position]] };
 		this.key       = function(){ return this.protected.keys[this.protected.position] };
+		this.previous  = function(){ this.protected.position--; return this; };
 		this.next      = function(){ this.protected.position++; return this; };
-		this.valid     = function(){ return this.protected.position<this.protected.keys.length };
+		this.valid     = function(){ return this.protected.position>=0 && this.protected.position<this.protected.keys.length };
 	}
-	.inherits(Iterator);
+	.inherits(ReversibleIterator);
 	
 	
 	/** *************************************************************************************************************** FilteredObjectIterator
@@ -197,6 +174,9 @@
 		this.key       = function(){ return this.protected.current.tagName };
 		this.next      = function(){
 			
+			if(!this.protected.current)
+				return this;
+
 			var current = this.protected.current; // shorter alias
 
 			if(current.childElementCount)
@@ -223,6 +203,7 @@
 					current = current.nextElementSibling;
 			}
 			this.protected.current = current;
+			return this;
 		};
 		
 		this.valid   = function(){ return this.protected.current };
@@ -230,27 +211,19 @@
 
 	}.inherits(Iterator);
 
-
+	
 	/** *************************************************************************************************************** Odd modifier
 	* Odd modifier
 	*/
-	var Odd = function(iteratorClass,target){
-	
-		// clone mode
-		if(arguments.length==1)
-		{
-			target = iteratorClass.getTarget();
-			iteratorClass = iteratorClass.constructor;
-		}
+	var Odd = function(iterator){
 
-		// default mode
-		var instance = new iteratorClass(target);
+		var instance = iterator.clone();
 
-		instance.next_ = instance.next;
+		instance.clone = function(){return this}; // modifier chainability
+		instance.next_Odd = instance.next;
 		instance.next = function(){
-			var i = 2;
-			while(this.valid() && i--)
-				this.next_();
+			for(var i=0;i<2;i++)
+				this.next_Odd();
 		};
 
 		return instance;
@@ -260,40 +233,68 @@
 	/** *************************************************************************************************************** Even modifier
 	* Even modifier
 	*/
-	var Even = function(iteratorClass,target){
-	
-		// clone mode
-		if(arguments.length==1)
-		{
-			target = iteratorClass.getTarget();
-			iteratorClass = iteratorClass.constructor;
-		}
+	var Even = function(iterator){
 
-		// default mode
-		var instance = new iteratorClass(target);
+		var instance = iterator.clone();
 
-		instance.rewind_ = instance.rewind;
+		instance.clone = function(){return this}; // modifier chainability
+		instance.rewind_Even = instance.rewind;
 		instance.rewind = function(){
-			this.rewind_();
-			this.valid() && this.next_();
+			this.rewind_Even();
+			this.valid() && this.next_Even();
 			return this;
 		};
 
-		instance.next_ = instance.next;
+		instance.next_Even = instance.next;
 		instance.next = function(){
-			var i = 2;
-			while(this.valid() && i--)
-				this.next_();
+			for(var i=0;i<2;i++)
+				this.next_Even();
 		};
 
 		return instance;
 	};
 
 
-
-	/** *************************************************************************************************************** Iterator.extend
-	* extend showoff as usual :)
+	/** *************************************************************************************************************** Infinite modifier
+	* Infinite modifier
 	*/
-	Iterator.extend({
-		foreach : function(action){Iterator.foreach(this,action)}
+	var Infinite = function(iterator){
+
+		var instance = iterator.clone();
+
+		instance.clone = function(){return this}; // modifier chainability
+		instance.valid_Infinite = instance.valid;
+		instance.valid = function(){
+			if(!this.valid_Infinite())
+				this.rewind();
+			return true;
+		};
+
+		return instance;
+	};
+
+	
+	/** *************************************************************************************************************** Reverse modifier
+	* Reverse modifier
+	*/
+	var Reverse = function(iterator){
+
+		var instance = iterator.clone();
+
+		if(!iterator.instanceOf(ReversibleIterator))
+			return instance;
+
+		instance.clone = function(){return this}; // modifier chainability
+		instance.next = instance.previous;
+		instance.rewind_Reverse = instance.rewind;
+		instance.rewind = instance.reverse;
+
+		return instance;
+	};
+	
+	/** *************************************************************************************************************** Iterator static functions
+	* Iterator static functions
+	*/
+	Iterator.extendStatic({
+		instance : function(target){ return new this(target) }
 	},true);

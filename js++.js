@@ -466,6 +466,8 @@ Class.interface = function(){
 	Class._lastCreated = new Function(implementation);
 	Class._lastCreated._methods = Array.prototype.slice.call(arguments);
 	Class._lastCreated.check = Class.interface.check.bind(Class._lastCreated);
+
+	Class._provideBasicFunctions(Class._lastCreated,true);
 	
 	return Class._lastCreated;
 };

@@ -41,7 +41,7 @@
 
 	function loadTest()
 	{
-		var debugIterator = function(i){
+		var debugIteration = function(i){
 			debug(i.key()+' : '+i.current());
 		};
 
@@ -50,21 +50,35 @@
 		var array = [1,2,3],
 		    ai = new ArrayIterator(array);
 
-		ai.foreach(debugIterator);
-
+		ai.foreach(debugIteration);
 
 		// Odd test
 		debug('\nforeach<Odd(ArrayIterator)>: [1,2,3]');
-		var odd = Odd(ai);
-
-		odd.foreach(debugIterator);
+		Odd(ai).foreach(debugIteration);
 		
 		// Even test
 		array.push(4);
 		debug('\nforeach<Even(ArrayIterator)>: [1,2,3,4]');
-		var even = Even(ai);
+		Even(ai).foreach(debugIteration);
 
-		even.foreach(debugIterator);
+		// Reverse test
+		debug('\nforeach<Reverse(ArrayIterator)>: [1,2,3,4]');
+		Reverse(ai).foreach(debugIteration);
+		
+		// Reverse Odd test
+		array.pop();
+		debug('\nforeach<Odd(Reverse(ArrayIterator))>: [1,2,3]');
+		Odd(Reverse(ai)).foreach(debugIteration);
+
+		// full combo test (Infinite + Odd + Reverse)
+		debug('\nInfinite( Odd( Reverse( Iterator.for([1,2,3,4,5])))) until step < 12');
+		Infinite(Odd(Reverse(Iterator.for([1,2,3,4,5]))))
+			.foreach(function(i,step){
+				if(step < 12)
+					debug(i.key()+' : '+i.current());
+				else
+					return false // -> break
+			});
 
 
 		// ObjectIterator test
@@ -72,7 +86,7 @@
 		var object = {a:1,b:2,c:3},
 		    oi = new ObjectIterator(object);
 
-		Iterator.foreach(oi,debugIterator);
+		Iterator.foreach(oi,debugIteration);
 
 
 		// PropertyIterator test
@@ -80,14 +94,14 @@
 		var object = {a:function(){return 1},b:2,c:function(){return 3},d:4},
 		    pi = new PropertyIterator(object);
 
-		pi.foreach(debugIterator);
+		pi.foreach(debugIteration);
 
 
 		// MethodIterator test
 		debug('\nforeach<MethodIterator>: {a: function(){return 1}, b:2, c: function(){return 3}, d:4}');
 		var mi = new MethodIterator(object);
 
-		mi.foreach(debugIterator);
+		mi.foreach(debugIteration);
 
 		
 		// DOM_Iterator test
@@ -96,9 +110,9 @@
 
 		dom.foreach(function(i){
 			puffer.push(
-				new Array(i.depth()+1).join('\t')
-				+ i.key()
-				+ (i.key()=='SPAN' ? ' ['+i.current().innerText.replace(/\n/g,'')+']' : '')
+				new Array(i.depth()+1).join('\t') // indent
+				+ i.key() // tag
+				+ (i.key()=='SPAN' ? ' ['+i.current().innerText.replace(/\n/g,'')+']' : '') // some content
 			);
 		});
 		
