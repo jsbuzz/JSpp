@@ -11,7 +11,7 @@
 		}
 
 		body {
-			padding:5px 20px;
+			padding:0;
 			margin:0;
 		}
 		
@@ -21,7 +21,7 @@
 		}
 		
 		pre span {
-			padding: 5px;
+			padding: 5px 20px;
 			display: block;
 		}
 
@@ -54,6 +54,13 @@
 		var debugIteration = function(i){
 			debug('\t'+i.key()+' : '+i.current());
 		};
+		
+		var concatInfinite = function(i,step,carry){
+			if(step < 30)
+				carry.result = carry.result ? carry.result+', '+i.current() : i.current();
+			else
+				return false // -> break
+		};
 
 		// ArrayIterator test
 		var array = [1,2,3],
@@ -75,13 +82,6 @@
 		debug('foreach <Odd(Reverse(ArrayIterator))> [1,2,3] : '+Odd(Reverse(ai)).foreach(concatValues).result);
 
 		// full combo test (Infinite + Odd + Reverse)
-		var concatInfinite = function(i,step,carry){
-			if(step < 30)
-				carry.result = carry.result ? carry.result+', '+i.current() : i.current();
-			else
-				return false // -> break
-		};
-
 		debug(
 			'foreach <Infinite( Odd( Reverse( Iterator )))> [1,2,3,4,5] : '
 			+ Infinite(Odd(Reverse(Iterator.for([1,2,3,4,5])))).foreach(concatInfinite).result
@@ -99,20 +99,18 @@
 
 		// PropertyIterator test
 		debug('foreach <PropertyIterator>: {a: function(){return 1}, b:2, c: function(){return 3}, d:4}');
-		var object = {a:function(){return 1},b:2,c:function(){return 3},d:4},
-		    pi = new PropertyIterator(object);
+		var object = {a:function(){return 1},b:2,c:function(){return 3},d:4};
 
-		pi.foreach(debugIteration);
+		PropertyIterator.foreach(object,debugIteration);
 
 
 		// MethodIterator test
 		debug('foreach <MethodIterator>: {a: function(){return 1}, b:2, c: function(){return 3}, d:4}');
-		var mi = new MethodIterator(object);
 
-		mi.foreach(debugIteration);
+		MethodIterator.foreach(object,debugIteration);
 
 		
-		// DOM_Iterator test
+		// DOM_Iterator tests
 		debug("spanIterator.foreach(function(i){\n\ti.current().style.borderBottom = '1px dotted #999';\n});");
 		debug("Even(spanIterator).foreach(function(i){\n\ti.current().style.backgroundColor = '#eee';\n});");
 		
@@ -126,13 +124,14 @@
 			i.current().style.backgroundColor = '#eee';
 		});
 		
+		// infinite DOM_Iterator tests
 		infinitum = Infinite(Odd(spanIterator));
 		
 		blink = function(){
 			infinitum.current().style.paddingLeft = '';
 			infinitum.next();
 			if(infinitum.valid())
-				infinitum.current().style.paddingLeft = '10px';
+				infinitum.current().style.paddingLeft = '25px';
 			blink.timer = window.setTimeout("blink()",50);
 		};
 	}
