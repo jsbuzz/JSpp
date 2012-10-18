@@ -22,6 +22,7 @@
 	</style>
 
 	<script type="text/javascript" src="../js++.js"></script>
+	<script type="text/javascript" src="iterators.js"></script>
 	<script type="text/javascript">
 
 	_DEBUG = false;
@@ -36,276 +37,57 @@
 		if(toConsole && console && typeof(console.info) == 'function')
 			console.info(txt);
 	}
-		
-	/** *************************************************************************************************************** Iterator
-	* Iterator interface
-	*/
-	var Iterator = Class.interface(
-		'rewind',
-		'current',
-		'key',
-		'next',
-		'valid',
-		'plusOne' // this will throw error on Iterator.check()
-	);
 
 
-	/**
-	* Iterator.foreach
-	*/
-	Iterator.foreach = function(iterator,action){
-		if(!Class.instanceOf(iterator,Iterator))
-			iterator = new ObjectIterator(iterator);
-
-		for(iterator.rewind();iterator.valid();iterator.next())
-			action(iterator);
-	};
-
-
-	/** *************************************************************************************************************** $AccessModel
-	* $AccessModel class
-	*/
-	var $AccessModel = function(){
-
-		this.$ = function(access,set)
-		{
-			var me = this;
-			if(typeof(me[access])!='undefined')
-				return set===undefined ? me[access] : (me[access]=set);
-			if(typeof(me.protected[access])!='undefined')
-				return set===undefined ? me.protected[access] : (me.protected[access]=set);
-			
-			throw new Error('$ Access to undefined property: '+access);
-		};
-
-		this.$$ = function(query){
-			var varName = query,
-			    operatorPos = query.length,
-					me = this;
-			
-			for(var i=0;i<query.length;i++)
-			{
-				if(!query.charAt(i).match(/\w/))
-				{
-					varName=varName.substr(0,i);
-					operatorPos=i;
-					break;
-				}
-			}
-			if(typeof(me[varName])!='undefined')
-				varName = 'this.'+varName;
-			else if(typeof(me.protected[varName])!='undefined')
-				varName = 'this.protected.'+varName;
-			else
-				throw new Error('$$ Access to undefined property: '+varName);
-
-			return eval('('+varName+query.substr(operatorPos)+')');
-		};
-
-	};
-
-
-	/** *************************************************************************************************************** ArrayIterator
-	* class ArrayIterator : Iterator,$AccessModel
-	*/
-	var ArrayIterator = function(target){
-
-		// protected scope
-		this.protected({
-				target   : target,
-				position : 0,
-			});
-
-
-		// methods
-		this.rewind = function(){
-			this.$$('position=0');
-			return this;
-		};
-
-		this.current = function(){
-			return this.$('target')[this.$('position')]
-		};
-
-		this.key = function(){
-			return this.$('position')
-		};
-
-		this.next = function(){
-			this.$$('position++');
-			return this;
-		};
-
-		this.valid = function(){
-			return this.$('position') < this.$('target').length
-		};
-	}
-	.inherits([Iterator,$AccessModel]);
-
-	
-	/** *************************************************************************************************************** ObjectIterator
-	* class ObjectIterator : Iterator
-	*/
-	var ObjectIterator = function(target){
-		
-		// protected scope
-		this.protected({
-				target   : target,
-		    keys     : [],
-				position : 0,
-			});
-
-		// map keys
-		for(var i in target)
-			this.protected.keys.push(i);
-
-		// methods
-		this.rewind  = function(){ this.protected.position = 0; return this; };
-		this.current = function(){ return this.protected.target[this.protected.keys[this.protected.position]] };
-		this.key     = function(){ return this.protected.keys[this.protected.position] };
-		this.next    = function(){ this.protected.position++; return this; };
-		this.valid   = function(){ return this.protected.position<this.protected.keys.length };
-	}
-	.inherits(Iterator);
-	
-	
-	/** *************************************************************************************************************** FilteredObjectIterator
-	* class FilteredObjectIterator : ObjectIterator
-	*/
-	var FilteredObjectIterator = function(target,condition){
-
-		// overwrite protected scope
-		this.protected.target = target;
-		this.protected.condition = condition;
-		for(var i in target)
-		{
-			if(condition(target[i]))
-				this.protected.keys.push(i);
-		}
-	}
-	.inherits(ObjectIterator,'(target)=>ObjectIterator()');
-	
-	
-	/** *************************************************************************************************************** PropertyIterator
-	* class PropertyIterator : FilteredObjectIterator
-	*/
-	var PropertyIterator = function(target){}
-		.inherits(
-			FilteredObjectIterator,
-			/* as */ function(target){return [target,function(t){return typeof(t)!="function"}]}
-		);
-
-
-	/** *************************************************************************************************************** MethodIterator
-	* class MethodIterator : FilteredObjectIterator
-	*/
-	var MethodIterator = function(target){}.inherits(FilteredObjectIterator,
-		'(target)=>(target,function(t){return typeof(t)=="function"})');
-
-
-	/** *************************************************************************************************************** DOM_Iterator
-	* class DOM_Iterator : Iterator
-	*/
-	var DOM_Iterator = function(element){
-
-		// protected scope
-		this.protected({
-				target   : element || document,
-		    current  : element,
-				depth    : 0
-			});
-
-
-		// methods
-		this.rewind  = function(){ this.protected.current = this.protected.target; return this; };
-		this.current = function(){ return this.protected.current };
-		this.key     = function(){ return this.protected.current.tagName };
-		this.next    = function(){
-			
-			var current = this.protected.current; // shorter alias
-
-			if(current.childElementCount)
-			{
-				current = current.firstElementChild;
-				this.protected.depth++;
-			}
-			else if(current.nextElementSibling)
-			{
-				current = current.nextElementSibling;
-			}
-			else
-			{
-				while(current && current!=this.protected.target)
-				{
-					this.protected.depth--;
-					current = current.parentElement;
-					if(current && current.nextElementSibling)
-						break;
-				}
-				if(!current || current==this.protected.target)
-					current = null;
-				else
-					current = current.nextElementSibling;
-			}
-			this.protected.current = current;
-		};
-		
-		this.valid   = function(){ return this.protected.current };
-		this.depth   = function(){ return this.protected.depth };
-
-	}.inherits(Iterator);
-
-
-
-	/** *************************************************************************************************************** Iterator.extend
-	* extend showoff as usual :)
-	*/
-	Iterator.extend({
-		foreach : function(action){Iterator.foreach(this,action)}
-	},true);
-
-
-	/** *************************************************************************************************************** tests
-	* # tests
-	*/
 	function loadTest()
 	{
+		var debugIterator = function(i){
+			debug(i.key()+' : '+i.current());
+		};
+
 		// ArrayIterator test
 		debug('\nforeach<ArrayIterator>: [1,2,3]');
 		var array = [1,2,3],
 		    ai = new ArrayIterator(array);
 
-		Iterator.foreach(ai,function(i){
-			debug(i.key()+' : '+i.current());
-		});
+		ai.foreach(debugIterator);
+
+
+		// Odd test
+		debug('\nforeach<Odd(ArrayIterator)>: [1,2,3]');
+		var odd = Odd(ai);
+
+		odd.foreach(debugIterator);
 		
-		
+		// Even test
+		array.push(4);
+		debug('\nforeach<Even(ArrayIterator)>: [1,2,3,4]');
+		var even = Even(ai);
+
+		even.foreach(debugIterator);
+
+
 		// ObjectIterator test
 		debug('\nforeach<ObjectIterator>: {a:1,b:2,c:3}');
 		var object = {a:1,b:2,c:3},
 		    oi = new ObjectIterator(object);
 
-		Iterator.foreach(oi,function(i){
-			debug(i.key()+' : '+i.current());
-		});
-		
-		
+		Iterator.foreach(oi,debugIterator);
+
+
 		// PropertyIterator test
 		debug('\nforeach<PropertyIterator>: {a: function(){return 1}, b:2, c: function(){return 3}, d:4}');
 		var object = {a:function(){return 1},b:2,c:function(){return 3},d:4},
 		    pi = new PropertyIterator(object);
 
-		Iterator.foreach(pi,function(i){
-			debug(i.key()+' : '+i.current());
-		});
-		
+		pi.foreach(debugIterator);
+
+
 		// MethodIterator test
 		debug('\nforeach<MethodIterator>: {a: function(){return 1}, b:2, c: function(){return 3}, d:4}');
 		var mi = new MethodIterator(object);
 
-		Iterator.foreach(mi,function(i){
-			debug(i.key()+' : '+i.current());
-		});
+		mi.foreach(debugIterator);
 
 		
 		// DOM_Iterator test
