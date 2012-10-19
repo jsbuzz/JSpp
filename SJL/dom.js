@@ -8,12 +8,15 @@
 		'...',
 	
 	DOMElement:
+		protected
+			node
+
 		style
+			get -> node.style
 			extend
-			merge
 			add
 			remove
-		
+
 		dimensions
 			get
 			set
@@ -37,11 +40,15 @@
 			get
 			set
 
-		DOM
+		dom
 			parent -> DOMElement
 			children -> DOMElementContainer // only the childElements
 			? subTree -> DOMElement_Iterator positioned to firstChild
-			
-			
+		
+		text
+			get
+			set
+			innerHTML
+			outerHTML
 		
 */
