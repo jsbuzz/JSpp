@@ -15,6 +15,22 @@
 			margin:0;
 		}
 		
+		h1{
+			margin:0;
+			padding: 5px 20px;
+			background-color: navy;
+			color: white;
+		}
+		
+		h1 span{
+			font-size: 13px;
+			color: #ddd;
+			display: inline-block;
+			margin-left: 5px;
+			padding-left: 5px;
+			border-left: 1px solid #ddd;
+		}
+		
 		pre {
 			margin:0;
 			padding:0;
@@ -23,6 +39,15 @@
 		pre span {
 			padding: 5px 20px;
 			display: block;
+		}
+		
+		pre span b {
+			color: navy;
+		}
+
+		
+		button {
+			font-size: 15px;
 		}
 
 	</style>
@@ -38,7 +63,7 @@
 		document.getElementById('debug').innerHTML = document.getElementById('debug').innerHTML+'<span>'+(
 				typeof(txt)!='string' ? 
 					JSON.stringify(txt) : 
-					txt.replace(/</g,'&lt;').replace(/>/g,'&gt;')
+					txt
 			)+'</span>';
 		if(toConsole && console && typeof(console.info) == 'function')
 			console.info(txt);
@@ -51,8 +76,8 @@
 			carry.result = carry.result ? carry.result+', '+i.current() : i.current();
 		};
 
-		var debugIteration = function(i){
-			debug('\t'+i.key()+' : '+i.current());
+		var debugIteration = function(i,s,carry){
+			carry.result = carry.result ? carry.result+', ('+i.key()+' : '+i.current()+')' : '('+i.key()+' : '+i.current()+')';
 		};
 		
 		var concatInfinite = function(i,step,carry){
@@ -65,56 +90,59 @@
 		// ArrayIterator test
 		var array = [1,2,3],
 		    ai = new ArrayIterator(array);
-		debug('foreach <ArrayIterator> [1,2,3] : '+ai.foreach(concatValues).result);
+		debug('ArrayIterator [1,2,3] : <b>'+ai.foreach(concatValues).result+'</b>');
 
 		// Odd test
-		debug('foreach <Odd(ArrayIterator)> [1,2,3] : '+Odd(ai).foreach(concatValues).result);
+		debug('Odd(ArrayIterator) [1,2,3] : <b>'+Odd(ai).foreach(concatValues).result+'</b>');
 		
 		// Even test
 		array.push(4);
-		debug('foreach <Even(ArrayIterator)> [1,2,3,4] : '+Even(ai).foreach(concatValues).result);
+		debug('Even(ArrayIterator) [1,2,3,4] : <b>'+Even(ai).foreach(concatValues).result+'</b>');
 
 		// Reverse test
-		debug('foreach <Reverse(ArrayIterator)> [1,2,3,4] : '+Reverse(ai).foreach(concatValues).result);
+		debug('Reverse(ArrayIterator) [1,2,3,4] : <b>'+Reverse(ai).foreach(concatValues).result+'</b>');
 		
 		// Reverse Odd test
 		array.pop();
-		debug('foreach <Odd(Reverse(ArrayIterator))> [1,2,3] : '+Odd(Reverse(ai)).foreach(concatValues).result);
+		debug('Odd(Reverse(ArrayIterator)) [1,2,3] : <b>'+Odd(Reverse(ai)).foreach(concatValues).result+'</b>');
 
 		// full combo test (Infinite + Odd + Reverse)
 		debug(
-			'foreach <Infinite( Odd( Reverse( Iterator )))> [1,2,3,4,5] : '
-			+ Infinite(Odd(Reverse(Iterator.for([1,2,3,4,5])))).foreach(concatInfinite).result
+			'Infinite( Odd( Reverse( Iterator ))) [1,2,3,4,5] : <b>'
+			+ Infinite(Odd(Reverse(Iterator.for([1,2,3,4,5])))).foreach(concatInfinite).result+'</b>'
 			+ ', ...'
 		);
 
 
 		// ObjectIterator test
-		debug('foreach <ObjectIterator>: {a:1,b:2,c:3}');
 		var object = {a:1,b:2,c:3},
 		    oi = new ObjectIterator(object);
 
-		Iterator.foreach(oi,debugIteration);
+		debug('ObjectIterator {a:1,b:2,c:3} : <b>'+Iterator.foreach(oi,debugIteration).result+'</b>');
 
 
 		// PropertyIterator test
-		debug('foreach <PropertyIterator>: {a: function(){return 1}, b:2, c: function(){return 3}, d:4}');
 		var object = {a:function(){return 1},b:2,c:function(){return 3},d:4};
 
-		PropertyIterator.foreach(object,debugIteration);
+		debug('PropertyIterator\n{a: fn(), b:2, c: fn(), d:4} : <b>'+PropertyIterator.foreach(object,debugIteration).result+'</b>');
 
 
 		// MethodIterator test
-		debug('foreach <MethodIterator>: {a: function(){return 1}, b:2, c: function(){return 3}, d:4}');
-
-		MethodIterator.foreach(object,debugIteration);
+		debug('MethodIterator\n{a: fn(), b:2, c: fn(), d:4} : <b>'+MethodIterator.foreach(object,debugIteration).result+'</b>');
 
 		
 		// DOM_Iterator tests
-		debug("spanIterator.foreach(function(i){\n\ti.current().style.borderBottom = '1px dotted #999';\n});");
-		debug("Even(spanIterator).foreach(function(i){\n\ti.current().style.backgroundColor = '#eee';\n});");
-		
-		var spanIterator = new DOM_Iterator(document.getElementById('debug').firstElementChild);
+		debug(
+			"spanIterator.foreach(function(i){\n\ti.current().style.borderBottom = '1px dotted #999';\n});\n"
+			+ "<button onclick=\"spanIterator.foreach(function(i){i.current().style.borderBottom = '';});\">undo</button> "
+			+ "<button onclick=\"spanIterator.foreach(function(i){i.current().style.borderBottom = '1px dotted #999';});\">redo</button> "
+		);
+		debug(
+			"Even(spanIterator).foreach(function(i){\n\ti.current().style.backgroundColor = '#eee';\n});\n"
+			+ "<button onclick=\"Even(spanIterator).foreach(function(i){i.current().style.backgroundColor = '';});\">undo</button> "
+			+ "<button onclick=\"Even(spanIterator).foreach(function(i){i.current().style.backgroundColor = '#eee';});\">redo</button> "
+		);
+		spanIterator = new TAG_Iterator(document.getElementById('debug').firstElementChild);
 
 		spanIterator.foreach(function(i){
 			i.current().style.borderBottom = '1px dotted #999';
@@ -125,14 +153,21 @@
 		});
 		
 		// infinite DOM_Iterator tests
-		infinitum = Infinite(Odd(spanIterator));
+		infinitum = Infinite(Odd(TAG_Iterator.for(document.getElementById('debug').firstElementChild)));
+		colorIterator = Iterator.for(['#aaa','#bbb','#ccc']);
 		
 		blink = function(){
-			infinitum.current().style.paddingLeft = '';
-			infinitum.next();
-			if(infinitum.valid())
-				infinitum.current().style.paddingLeft = '25px';
-			blink.timer = window.setTimeout("blink()",50);
+			if(colorIterator.valid())
+			{
+				infinitum.current().style.backgroundColor = colorIterator.current();
+				colorIterator.next();
+				blink.timer = window.setTimeout("blink()",50);
+			}else{
+				colorIterator.rewind();
+				infinitum.current().style.backgroundColor = '';
+				infinitum.next();
+				blink.timer = window.setTimeout("blink()",150);
+			}
 		};
 	}
 	</script>
@@ -140,8 +175,25 @@
 </head>
 
 <body onload="loadTest()">
+	<h1>Iterator test <span>JSL/iterators.js basic tests<br/>2012-10-19</span></h1>
 	<pre id="debug"></pre>
-	<button onclick="blink()">Infinite iterator effect</button><button onclick="window.clearTimeout(blink.timer)">stop</button>
+	<pre>
+		<span><button onclick="blink()">blink++</button><button onclick="window.clearTimeout(blink.timer)">blink--</button></span>
+	infinitum = Infinite(Odd(TAG_Iterator.for(document.getElementById('debug').firstElementChild)));
+	colorIterator = Iterator.for(['#aaa','#bbb','#ccc']);
+	blink = function(){
+		if(colorIterator.valid())
+		{
+			infinitum.current().style.backgroundColor = colorIterator.current();
+			colorIterator.next();
+			blink.timer = window.setTimeout("blink()",50);
+		}else{
+			colorIterator.rewind();
+			infinitum.current().style.backgroundColor = '';
+			infinitum.next();
+			blink.timer = window.setTimeout("blink()",150);
+		}
+	};
 	</pre>
 </body>
 </html>

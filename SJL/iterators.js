@@ -20,6 +20,13 @@
 	}).extendStatic({
 	//# static methods
 	//-------------------------------------------------------------------------------------------- Iterator.foreach(fn)
+	/**
+	* The foreach will iterate thru the target and call the action function with the following three parameters:
+	*  1. iterator - the iterator instance
+	*  2. step - the step count
+	*  3. carry - an object to use as return value
+	* If the action returns false it will break the iteration.
+	*/
 		foreach : function(iterator,action){
 			if(!Class.instanceOf(iterator,this))
 				iterator = this.for(iterator);
@@ -39,6 +46,9 @@
 		},
 		
 	//-------------------------------------------------------------------------------------------- Iterator.for(target)
+	/**
+	* This static method will create an ideal iterator instance for the given target
+	*/
 		for : function(target){
 			
 			// for future compatibility
@@ -60,6 +70,9 @@
 		},
 		
 	//--------------------------------------------------------------------------------------------- Iterator.instance()
+	/**
+	* This static method will create an iterator instance for the given target
+	*/
 		instance : function(target){ return new this(target) }
 
 	},true // recursive=true -> all derived classes will inherit these static methods
@@ -70,9 +83,24 @@
 	* ReversibleIterator : Iterator
 	*/
 	var ReversibleIterator = Class.interface(
+	//# abstract methods
 		'previous',
 		'reverse'
 	)
+	.extend({
+	//# virtual methods
+		flip : function(){
+			
+			var t = this.next;
+			this.next = this.previous;
+			this.previous = t;
+			
+			t = this.rewind;
+			this.rewind = this.reverse;
+			this.reverse = t;
+			return this;
+		}
+	})
 	.inherits(Iterator);
 
 
@@ -183,7 +211,7 @@
 		// protected scope
 		this.protected({
 			target   : element || document,
-		    current  : element,
+			current  : element,
 			depth    : 0
 		});
 
@@ -194,7 +222,6 @@
 		this.current   = function(){ return this.protected.current };
 		this.key       = function(){ return this.protected.current.tagName };
 		this.next      = function(){
-
 			if(!this.protected.current)
 				return this;
 
@@ -214,7 +241,7 @@
 			// then try to climb up
 			else
 			{
-				while(current && current!=this.protected.target && current!=this.protected.target.parentNode)
+				while(current && current!=this.protected.target.parentNode)
 				{
 					this.protected.depth--;
 					current = current.parentElement;
@@ -222,7 +249,7 @@
 						break;
 				}
 				// if we reached the end of the structure/subtree
-				if(!current || current==this.protected.target || current==this.protected.target.parentNode)
+				if(!current || current==this.protected.target.parentNode)
 					current = null;
 				else
 					current = current.nextElementSibling;
@@ -237,7 +264,44 @@
 	}.inherits(Iterator);
 
 
-	/**
+	/** *************************************************************************************************************** TAG_Iterator
+	* class TAG_Iterator : Iterator
+	*/
+	var TAG_Iterator = function(element,tagName){
+		
+		// protected scope
+		this.protected({
+			tagName : tagName || element.tagName
+		});
+
+		// jumps to the next tag
+		this.seekTag = function(){
+			while(this.protected.current && this.protected.current.tagName!=this.protected.tagName)
+			{
+				this.super('next');
+			}
+		};
+		
+		// rewind needs a seekTag
+		this.rewind = function(){
+			this.super('rewind');
+			this.seekTag();
+		};
+		
+		// next needs a seekTag
+		this.next = function(){
+			this.super('next');
+			this.seekTag();
+		};
+		
+		// construction needs a seekTag as well
+		this.seekTag();
+
+	}.inherits(DOM_Iterator);
+
+
+
+	/** *************************************************************************************************************** Iterator modifiers
 	* Iterator modifiers
 	* These modifiers are used to modify default iterator behavior.
 	* In case of chaining modifiers always use them in the following order to avoid any incompatibilities:
@@ -260,6 +324,14 @@
 			return true;
 		};
 
+		instance.next_Infinite = instance.next;
+		instance.next = function(){
+			this.next_Infinite();
+			if(!this.valid_Infinite())
+				this.rewind();
+			return this;
+		};
+		
 		return instance;
 	};
 
@@ -294,7 +366,7 @@
 		instance.rewind_Even = instance.rewind;
 		instance.rewind = function(){
 			this.rewind_Even();
-			this.valid() && this.next_Even();
+			this.next_Even();
 			return this;
 		};
 
@@ -304,6 +376,8 @@
 				this.next_Even();
 			return this;
 		};
+
+		instance.next_Even(); // position the iterator to position 2
 
 		return instance;
 	};
@@ -320,8 +394,7 @@
 			return instance;
 
 		instance.clone = function(){return this}; // modifier chainability
-		instance.next = instance.previous;
-		instance.rewind = instance.reverse;
+		instance.flip();
 
 		return instance;
 	};
