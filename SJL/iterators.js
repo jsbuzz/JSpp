@@ -9,13 +9,13 @@
 		'key',
 		'next',
 		'valid',
-		'getTarget',
-		'plusOne' // this will throw error on Iterator.check(true)
+		'getTarget'
 
 	).extend({
 	//# virtual methods
-		foreach : function(action){ return Iterator.foreach(this,action) },
-		clone   : function(){ return new this.constructor(this.getTarget()) }
+		foreach     : function(action){ return Iterator.foreach(this,action) },
+		clone       : function(){ return new this.constructor(this.getTarget()) },
+		getIterator : function(){ return this }
 
 	}).extendStatic({
 	//# static methods
@@ -73,7 +73,7 @@
 	/**
 	* This static method will create an iterator instance for the given target
 	*/
-		instance : function(target){ return new this(target) }
+		instance : function(target,a,b,c){ return new this(target,a,b,c) }
 
 	},true // recursive=true -> all derived classes will inherit these static methods
 	);
@@ -220,7 +220,7 @@
 		this.getTarget = function(){ return this.protected.target; };
 		this.rewind    = function(){ this.protected.current = this.protected.target; return this; };
 		this.current   = function(){ return this.protected.current };
-		this.key       = function(){ return this.protected.current.tagName };
+		this.key       = function(){ return this.protected.current && this.protected.current.tagName };
 		this.next      = function(){
 			if(!this.protected.current)
 				return this;
@@ -265,7 +265,7 @@
 
 
 	/** *************************************************************************************************************** TAG_Iterator
-	* class TAG_Iterator : Iterator
+	* class TAG_Iterator : DOM_Iterator
 	*/
 	var TAG_Iterator = function(element,tagName){
 		
@@ -278,25 +278,25 @@
 		this.seekTag = function(){
 			while(this.protected.current && this.protected.current.tagName!=this.protected.tagName)
 			{
-				this.super('next');
+				this.super('next'); // call DOM_Iterator::next()
 			}
+			return this;
 		};
 		
 		// rewind needs a seekTag
 		this.rewind = function(){
-			this.super('rewind');
-			this.seekTag();
+			this.super('rewind'); // call DOM_Iterator::rewind()
+			return this.seekTag();
 		};
 		
 		// next needs a seekTag
 		this.next = function(){
-			this.super('next');
-			this.seekTag();
+			this.super('next'); // call DOM_Iterator::next()
+			return this.seekTag();
 		};
 		
 		// construction needs a seekTag as well
 		this.seekTag();
-
 	}.inherits(DOM_Iterator);
 
 
