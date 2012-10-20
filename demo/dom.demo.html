@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>js++ DOM demo</title>
+	
+	<style type="text/css">
+		* {
+			font-family: Calibri,Helvetia,sans-serif;
+		}
+
+		body {
+			padding:0;
+			margin:0;
+		}
+		
+		h1{
+			margin:0;
+			padding: 5px 20px;
+			background-color: navy;
+			color: white;
+			border-bottom: 5px solid #555;
+			margin-bottom: 10px;
+		}
+		
+		h1 span{
+			font-size: 13px;
+			color: #ddd;
+			display: inline-block;
+			margin-left: 5px;
+			padding-left: 5px;
+			border-left: 1px solid #ddd;
+		}
+
+		h1 span strong{
+			color: white;
+		}
+
+		div#box {
+			cursor: pointer;
+			border: 2px solid navy;
+			padding: 3px;
+			margin: 20px;
+			width: 170px;
+			height: 50px;
+			background-color: #ddd;
+		}
+		div#box.dragged{border-color: #800000;}
+		div#box.resized{border-color: orange;}
+
+	</style>
+
+	<script type="text/javascript" src="../js++.js"></script>
+	<script type="text/javascript" src="../SJL/dom.js"></script>
+	<script type="text/javascript">
+
+	_DEBUG = false;
+	var $ = DOM.query;
+
+	function fixEvent(event,target)
+	{
+		if(navigator.userAgent.indexOf('Firefox')>0)
+		{
+			event.offsetX = event.clientX-target.offset.left();
+			event.offsetY = event.clientY-target.offset.top();
+		}
+	}
+
+	function loadTest()
+	{
+		box = $('#box');
+
+		$('#box').onmousemove = function(event){
+			fixEvent(event,this);
+			if(this.dragged)
+			{
+				var move = {
+						x : ( event.offsetX > this.dragged.x ? '+'+(event.offsetX-this.dragged.x) : '-'+(this.dragged.x-event.offsetX) ),
+						y : ( event.offsetY > this.dragged.y ? '+'+(event.offsetY-this.dragged.y) : '-'+(this.dragged.y-event.offsetY) )}
+				
+				this.offset.left(move.x).offset.top(move.y);
+			}else if(this.resized){
+
+				var horizontal = event.screenX-this.resized.x,
+				    vertical = event.screenY-this.resized.y;
+				
+				if(this.resizeDirection.indexOf('w')>-1 || this.resizeDirection.indexOf('e')>-1)
+				{
+					if(event.offsetX < this.dimensions.width()/2 && horizontal > 4)
+					{
+						this.dimensions.width('-3').offset.left('+3');
+						this.resized.x += 3;
+					}
+					else if(event.offsetX < this.dimensions.width()/2 && horizontal < -4)
+					{
+						this.dimensions.width('+3').offset.left('-3');
+						this.resized.x -= 3;
+					}
+					else if(event.offsetX > this.dimensions.width()/2 && horizontal > 4)
+					{
+						this.dimensions.width('+3');
+						this.resized.x += 3;
+					}
+					else if(event.offsetX > this.dimensions.width()/2 && horizontal < -4)
+					{
+						this.dimensions.width('-3');
+						this.resized.x -= 3;
+					}
+				}
+				
+				if(this.resizeDirection.indexOf('n')>-1 || this.resizeDirection.indexOf('s')>-1)
+				{
+					if(event.offsetY < this.dimensions.height()/2 && vertical > 4)
+					{
+						this.dimensions.height('-3').offset.top('+3');
+						this.resized.y += 3;
+					}
+					else if(event.offsetY < this.dimensions.height()/2 && vertical < -4)
+					{
+						this.dimensions.height('+3').offset.top('-3');
+						this.resized.y -= 3;
+					}
+					else if(event.offsetY > this.dimensions.height()/2 && vertical > 4)
+					{
+						this.dimensions.height('+3');
+						this.resized.y += 3;
+					}
+					else if(event.offsetY > this.dimensions.height()/2 && vertical < -4)
+					{
+						this.dimensions.height('-3');
+						this.resized.y -= 3;
+					}
+				}
+			}
+			else
+			{
+				this.resizeDirection = '';
+				if(event.offsetY < 20)
+					this.resizeDirection += 'n';
+				else if(event.offsetY > this.dimensions.height()-20)
+					this.resizeDirection += 's';
+				
+				if(event.offsetX < 20)
+					this.resizeDirection += 'w';
+				else if(event.offsetX > this.dimensions.width()-20)
+					this.resizeDirection += 'e';
+				
+				if(this.resizeDirection)
+					this.css({cursor:this.resizeDirection+'-resize'});
+				else
+					this.css({cursor:'move'});
+			}
+		};
+
+
+		$('#box').onmousedown = function(event){
+			fixEvent(event,this);
+			$('body').active = this;
+			if(event.offsetX < 20 && event.offsetX > 5 || event.offsetY < 20 && event.offsetY > 5
+				|| event.offsetX > this.dimensions.width()-20 && event.offsetX < this.dimensions.width()-5
+				|| event.offsetY > this.dimensions.height()-20 && event.offsetY < this.dimensions.height()-5
+			){
+				this.resized = {x : event.screenX, y : event.screenY};
+				this.classList.add('resized');
+			}
+			else
+			{
+				this.dragged={x : event.offsetX, y : event.offsetY};
+				this.classList.add('dragged');
+			}
+			return false;
+		};
+
+
+		$('body').onmouseup = function(){
+			this.active.dragged = false;
+			this.active.resized = false;
+			this.active.className = '';
+		};
+	}
+	</script>
+</head>
+
+<body onload="loadTest()">
+	<h1>DOM tests <span>using <strong>SJL/dom.js</strong><br/>Standard Js++ Library</span></h1>
+	
+	<div id="box">drag and resize me!</div>
+
+</body>
+</html>

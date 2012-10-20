@@ -113,13 +113,26 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 /** ******************************************************************************************************************* Class::applyTo
 * under construction :)
 */
-/*Class.applyTo = function(object)
+Class.applyTo = function(object)
 {
-	// object is derived
-	if(typeof(object.instanceOf))
-	
-	
-}*/
+	var args = Array.prototype.slice.call(arguments,1),
+	    paramChannels = this._paramChannels || [],
+		constructor = object.constructor || this;
+
+	var paramMap = new Array(paramChannels.length+1);
+	paramMap[paramChannels.length] = args;
+	for(var i=paramChannels.length-1;i>=0;i--)
+		paramMap[i] = paramChannels[i].apply(null,paramMap[paramChannels[i].parent]);
+
+	for(var i=0;i < this._constructors.length;i++)
+	{
+		object.constructor = this._constructors[i]._caller || this._constructors[i];
+		Class._applyConstructor(this._constructors[i],object,paramMap[i],constructor);
+	}
+	object.constructor = constructor;
+
+	return object;
+}
 
 
 /** ******************************************************************************************************************* Class::_scope
