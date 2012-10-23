@@ -37,26 +37,70 @@
 			color: white;
 		}
 
+		div#homesick {
+			position: absolute;
+			top: 144px;
+			left: 20px;
+			cursor: move;
+			border: 2px solid orange;
+			padding: 8px;
+			width: 70px;
+			height: 40px;
+			background-color: #eee;
+			overflow: hidden;
+			z-index: 10;
+		}
+		div#homesick.dragged{
+			border-color: #eee;
+			background-color: #eee;
+		}
+		
 		div#box {
 			cursor: pointer;
 			border: 2px solid navy;
-			padding: 3px;
+			padding: 8px;
 			margin: 20px;
-			width: 170px;
-			height: 50px;
+			width: 70px;
+			height: 40px;
 			background-color: #ddd;
+			overflow: hidden;
+			position: relative;
+			z-index: 9;
 		}
-		div#box.dragged{border-color: #800000;}
-		div#box.resized{border-color: orange;}
+		div#box:hover {z-index: 10;}
+		div#box.resized{border: 2px dashed navy;}
+		div#box.dragged{
+			border-color: #eee;
+			background-color: #eee;
+		}
+		
+		div#colors{
+			padding:5px;
+			position: absolute;
+			left:200px;
+			top: 60px;
+			width: 200px;
+			height: 500px;
+			border: 1px dotted #777;
+		}
+		
+		div#colors div {
+			margin: 0px 50px;
+			width:100px;
+			height:100px;
+		}
+		div#red   {background-color: red;}
+		div#green {background-color: green;}
+		div#blue  {background-color: blue;}
 
 	</style>
 
 	<script type="text/javascript" src="../js++.js"></script>
+	<script type="text/javascript" src="../SJL/iterators.js"></script>
 	<script type="text/javascript" src="../SJL/dom.js"></script>
 	<script type="text/javascript">
-
-	_DEBUG = false;
-	var $ = DOM.query;
+	var $  = DOM.Element,
+	    $$ = DOM.query;
 
 	function fixEvent(event,target)
 	{
@@ -69,115 +113,276 @@
 
 	function loadTest()
 	{
-		box = $('#box');
+		/** *********************************************************************************************************** draggable and resizable box
+		* draggable and resizable box
+		*/
+		
+		//-------------------------------------------------------------------------------------------- events/mousemove
+		$('#box').events.listen('mousemove');
 
-		$('#box').onmousemove = function(event){
+		// mousemove / cursorChange
+		$('#box').events.mousemove.cursorChange = function(event){
 			fixEvent(event,this);
-			if(this.dragged)
-			{
-				var move = {
-						x : ( event.offsetX > this.dragged.x ? '+'+(event.offsetX-this.dragged.x) : '-'+(this.dragged.x-event.offsetX) ),
-						y : ( event.offsetY > this.dragged.y ? '+'+(event.offsetY-this.dragged.y) : '-'+(this.dragged.y-event.offsetY) )}
-				
-				this.offset.left(move.x).offset.top(move.y);
-			}else if(this.resized){
-
-				var horizontal = event.screenX-this.resized.x,
-				    vertical = event.screenY-this.resized.y;
-				
-				if(this.resizeDirection.indexOf('w')>-1 || this.resizeDirection.indexOf('e')>-1)
-				{
-					if(event.offsetX < this.dimensions.width()/2 && horizontal > 4)
-					{
-						this.dimensions.width('-3').offset.left('+3');
-						this.resized.x += 3;
-					}
-					else if(event.offsetX < this.dimensions.width()/2 && horizontal < -4)
-					{
-						this.dimensions.width('+3').offset.left('-3');
-						this.resized.x -= 3;
-					}
-					else if(event.offsetX > this.dimensions.width()/2 && horizontal > 4)
-					{
-						this.dimensions.width('+3');
-						this.resized.x += 3;
-					}
-					else if(event.offsetX > this.dimensions.width()/2 && horizontal < -4)
-					{
-						this.dimensions.width('-3');
-						this.resized.x -= 3;
-					}
-				}
-				
-				if(this.resizeDirection.indexOf('n')>-1 || this.resizeDirection.indexOf('s')>-1)
-				{
-					if(event.offsetY < this.dimensions.height()/2 && vertical > 4)
-					{
-						this.dimensions.height('-3').offset.top('+3');
-						this.resized.y += 3;
-					}
-					else if(event.offsetY < this.dimensions.height()/2 && vertical < -4)
-					{
-						this.dimensions.height('+3').offset.top('-3');
-						this.resized.y -= 3;
-					}
-					else if(event.offsetY > this.dimensions.height()/2 && vertical > 4)
-					{
-						this.dimensions.height('+3');
-						this.resized.y += 3;
-					}
-					else if(event.offsetY > this.dimensions.height()/2 && vertical < -4)
-					{
-						this.dimensions.height('-3');
-						this.resized.y -= 3;
-					}
-				}
-			}
+			this.resizeDirection = '';
+			if(event.offsetY < 20)
+				this.resizeDirection += 'n';
+			else if(event.offsetY > this.dimensions.height()-20)
+				this.resizeDirection += 's';
+			
+			if(event.offsetX < 20)
+				this.resizeDirection += 'w';
+			else if(event.offsetX > this.dimensions.width()-20)
+				this.resizeDirection += 'e';
+			
+			if(this.resizeDirection)
+				this.css({cursor:this.resizeDirection+'-resize'});
 			else
-			{
-				this.resizeDirection = '';
-				if(event.offsetY < 20)
-					this.resizeDirection += 'n';
-				else if(event.offsetY > this.dimensions.height()-20)
-					this.resizeDirection += 's';
-				
-				if(event.offsetX < 20)
-					this.resizeDirection += 'w';
-				else if(event.offsetX > this.dimensions.width()-20)
-					this.resizeDirection += 'e';
-				
-				if(this.resizeDirection)
-					this.css({cursor:this.resizeDirection+'-resize'});
-				else
-					this.css({cursor:'move'});
-			}
+				this.css({cursor:'move'});
 		};
 
 
-		$('#box').onmousedown = function(event){
+		//-------------------------------------------------------------------------------------------- events/mousedown
+		$('#box').events.listen('mousedown',true).handler = function(event){ 
 			fixEvent(event,this);
-			$('body').active = this;
-			if(event.offsetX < 20 && event.offsetX > 5 || event.offsetY < 20 && event.offsetY > 5
-				|| event.offsetX > this.dimensions.width()-20 && event.offsetX < this.dimensions.width()-5
-				|| event.offsetY > this.dimensions.height()-20 && event.offsetY < this.dimensions.height()-5
+			$('body').data.activeElement = this;
+			if(event.offsetX < 20 || event.offsetY < 20
+				|| event.offsetX > this.dimensions.width()-20
+				|| event.offsetY > this.dimensions.height()-20
 			){
-				this.resized = {x : event.screenX, y : event.screenY};
+				$('body').events.mousemove.resize.listen = true;
+				this.events.mousemove.cursorChange.listen = false;
+				this.resized = {x : event.screenX, y : event.screenY, sideX : event.offsetX < 20 ? 'left' : 'right', sideY : event.offsetY < 20 ? 'top' : 'bottom'};
 				this.classList.add('resized');
 			}
 			else
 			{
-				this.dragged={x : event.offsetX, y : event.offsetY};
+				$('body').events.mousemove.drag.listen = true;
+				this.events.mousemove.cursorChange.listen = false;
+				this.dragged={x : event.screenX, y : event.screenY};
 				this.classList.add('dragged');
 			}
 			return false;
 		};
-
-
-		$('body').onmouseup = function(){
-			this.active.dragged = false;
-			this.active.resized = false;
-			this.active.className = '';
+		
+		//------------------------------------------------------------------------------------------ events/colorChange
+		$('#box').events.listen('colorChange').handler = function(event){
+			if(event.data)
+			{
+				this.data.originalText || (this.data.originalText = this.innerHTML);
+				this.innerHTML = "I'm "+event.data;
+				this.data.colorChanged = event.data;
+			}else{
+				this.innerHTML = this.data.originalText;
+				this.data.colorChanged = 0;
+			}
 		};
+		
+		//---------------------------------------------------------------------------------------------- events/mouseup
+		$('#box').events.listen('mouseup').handler = function(event){
+			this.dragged = false;
+			this.resized = false;
+			this.events.enableListeners('mousemove',['cursorChange']);
+			//$('body').events.disableListeners('mousemove',['drag','resize']);
+			this.className = '';
+		}
+		
+		//--------------------------------------------------------------------------------------------- events/mouseout
+		$('#box').events.listen('mouseout').handler = function(event){
+			this.events.trigger('mouseup');
+		}
+
+
+		/** *********************************************************************************************************** body events
+		* body events
+		*/
+
+		//---------------------------------------------------------------------------------------------- events/mouseup
+		$('body').events.listen('mouseup').action = function(event){
+			if(this.data.activeElement)
+			{
+				this.data.activeElement.css({zIndex:9});
+				if(event.srcElement==this)
+					this.data.activeElement.events.trigger('mouseup');
+			}
+			this.data.activeElement = false;
+		};
+		
+		//-------------------------------------------------------------------------------------------- events/mousedown
+		$('body').events.listen('mousedown').action = function(event){
+			if(this.data.activeElement)
+			{
+				this.data.activeElement.css({zIndex:99});
+			}
+		}
+
+		//-------------------------------------------------------------------------------------------- events/mousemove
+		$('body').events.listen('mousemove');
+		
+		// mousemove / drag
+		$('body').events.mousemove.drag = function(event){
+			if(this.data.activeElement && this.data.activeElement.dragged)
+			{
+				var element = this.data.activeElement,
+				    move = {
+						x : ( event.screenX > element.dragged.x ? '+'+(event.screenX-element.dragged.x) : '-'+(element.dragged.x-event.screenX) ),
+						y : ( event.screenY > element.dragged.y ? '+'+(event.screenY-element.dragged.y) : '-'+(element.dragged.y-event.screenY) )}
+				
+				element.dragged = {x : event.screenX, y : event.screenY};
+				element.offset.left(move.x).offset.top(move.y);
+			}
+		};
+
+		// mousemove / resize
+		$('body').events.mousemove.resize = function(event){
+			if(this.data.activeElement && this.data.activeElement.resized)
+			{
+				var element = this.data.activeElement,
+				    horizontal = event.screenX-element.resized.x,
+				    vertical = event.screenY-element.resized.y;
+				
+				if(element.resizeDirection.indexOf('w')>-1 || element.resizeDirection.indexOf('e')>-1)
+				{
+					if(element.resized.sideX=='left' && horizontal > 0)
+						element.dimensions.width('-'+horizontal).offset.left('+'+horizontal);
+					else if(element.resized.sideX=='left' && horizontal < 0)
+						element.dimensions.width('+'+Math.abs(horizontal)).offset.left('-'+Math.abs(horizontal));
+					else if(element.resized.sideX=='right' && horizontal > 0)
+						element.dimensions.width('+'+horizontal);
+					else if(element.resized.sideX=='right' && horizontal < 0)
+						element.dimensions.width('-'+Math.abs(horizontal));
+
+					element.resized.x += horizontal;
+				}
+				
+				if(element.resizeDirection.indexOf('n')>-1 || element.resizeDirection.indexOf('s')>-1)
+				{
+					if(element.resized.sideY=='top' && vertical > 0)
+						element.dimensions.height('-'+vertical).offset.top('+'+vertical);
+					else if(element.resized.sideY=='top' && vertical < 0)
+						element.dimensions.height('+'+Math.abs(vertical)).offset.top('-'+Math.abs(vertical));
+					else if(element.resized.sideY=='bottom' && vertical > 0)
+						element.dimensions.height('+'+vertical);
+					else if(element.resized.sideY=='bottom' && vertical < 0)
+						element.dimensions.height('-'+Math.abs(vertical));
+
+					element.resized.y += vertical;
+				}
+			}
+		};
+
+		// mousemove / colorChange
+		$('body').events.mousemove.colorChange = function(e){
+			if(!this.data.activeElement || !this.data.activeElement.dragged)
+				return false;
+
+			var point = {x:e.pageX,y:e.pageY},
+				found = false;
+			for(var color in colors)
+			{
+				if(match(colors[color],point))
+				{
+					if(this.data.activeElement.data.colorChanged!=color)
+					{
+						this.data.activeElement
+							.css({backgroundColor:color,color:'white'})
+							.events.trigger('colorChange',color);
+					}
+					found = true;
+					break;
+				}
+			}
+			if(!found)
+			{
+				this.data.activeElement.css({backgroundColor:'',color:''});
+				if(this.data.activeElement.data.colorChanged)
+					this.data.activeElement.events.trigger('colorChange',null);
+			}
+		};
+
+
+		/** *********************************************************************************************************** colors modifications
+		* colors modifications
+		*/
+		function match(rect,point){
+			return rect.top <= point.y && rect.bottom >= point.y && rect.left <= point.x && rect.right >= point.x;
+		}
+
+		colors = {};
+		$$('#colors div').foreach(function(){
+			colors[this.id] = this.clientRect();
+		})
+		
+		$$('#colors div').css({marginTop:'3px'}).first().css({marginTop:'10px'});
+		$('#colors').dimensions.height(
+			$$('#colors div').last().offset.bottom()
+			- $('#colors').offset.top()
+			+ 10
+		).css({oveflow:'hidden'});
+
+
+		/** *********************************************************************************************************** homesick box
+		* homesick box
+		*/
+		$('#homesick').events.listen('mousedown',true).handler = function(event){
+			$('body').data.activeElement = this;
+			$('body').events.mousemove.drag.listen = true;
+			this.dragged={x : event.screenX, y : event.screenY};
+			this.classList.add('dragged');
+			this.innerHTML = "I'm moving...";
+		};
+		$('#homesick').events.listen('mouseup').handler = function(){
+			this.dragged = false;
+			this.className = '';
+			this.data.relocated = true;
+		};
+		$('#homesick').events.listen('mouseout').handler = function(event){
+			this.events.trigger('mouseup');
+		}
+		
+		$('#homesick').events.listen('home').handler = function(){
+			this.innerHTML = "I'm home...";
+			this.css({backgroundColor:'',color:''});
+		};
+
+		// infinite loop to track and send the box home
+		$('#homesick').createLoop('goHome',
+			true, // (condition = true) => infinite
+			function(loop){
+				if(this.data.relocated===true)
+				{
+					var arrived = 0,
+					    myRect = this.offset.rect(),
+						stepX = Math.max(1,parseInt(Math.abs(myRect.left-20)/10)),
+						stepY = Math.max(1,parseInt(Math.abs(myRect.top-144)/10));
+					loop.timeout = 10;
+
+					if(myRect.left>20)
+						this.offset.left('-'+stepX);
+					else if(myRect.left<20)
+						this.offset.left('+'+stepX);
+					else
+						arrived++;
+
+					if(myRect.top>144)
+						this.offset.top('-'+stepY);
+					else if(myRect.top<144)
+						this.offset.top('+'+stepY);
+					else
+						arrived++;
+
+					if(arrived==2)
+					{
+						this.events.trigger('home');
+						this.data.relocated = false;
+						loop.timeout = 300;
+					}
+				}
+			},
+			false, // no final event
+			300
+		)();
+
+
 	}
 	</script>
 </head>
@@ -186,6 +391,15 @@
 	<h1>DOM tests <span>using <strong>SJL/dom.js</strong><br/>Standard Js++ Library</span></h1>
 	
 	<div id="box">drag and resize me!</div>
+
+	<div id="colors">
+		Drag the boxes to these color samples to color them!
+		<div id="red"></div>
+		<div id="green"></div>
+		<div id="blue"></div>
+	</div>
+	
+	<div id="homesick">drag me anywhere!</div>
 
 </body>
 </html>

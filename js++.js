@@ -407,7 +407,7 @@ Function.prototype.inherits = function(parents,paramQuery)
 		}
 
 
-		var MultiDerivedClass = function(){};
+		var MultiDerivedClass = function _MultiDerivedClass(){};
 		var t = Class._constructor.bind(this,this,constructors,MultiDerivedClass,paramChannels);
 
 		Class._provideBasicFunctions(t,false,t);

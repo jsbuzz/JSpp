@@ -13,6 +13,7 @@
 
 	).extend({
 	//# virtual methods
+		first       : function(){ return this.rewind().current() },
 		foreach     : function(action){ return Iterator.foreach(this,action) },
 		clone       : function(){ return new this.constructor(this.getTarget()) },
 		getIterator : function(){ return this }
@@ -35,7 +36,7 @@
 			    returnValue = {};
 			for(iterator.rewind();iterator.valid();iterator.next())
 			{
-				if(action(iterator,step++,returnValue) === false) // break on false result
+				if(action.call(iterator.current(),iterator,step++,returnValue) === false) // break on false result
 					break;
 			}
 			// if anything is added to the returnValue
@@ -89,6 +90,7 @@
 	)
 	.extend({
 	//# virtual methods
+		last : function(){ return this.reverse().current() },
 		flip : function(){
 			
 			var t = this.next;
@@ -124,6 +126,11 @@
 		this.previous  = function(){ this.protected.position--; return this; };
 		this.next      = function(){ this.protected.position++; return this; };
 		this.valid     = function(){ return this.protected.position>=0 && this.protected.position<this.protected.target.length };
+		
+		// container access
+		this.item  = function(n){ return n>=0 && n<this.protected.target.length ? this.protected.target[n] : false };
+		this.count = function(n){ return this.protected.target.length };
+
 
 	}.inherits(ReversibleIterator);
 
