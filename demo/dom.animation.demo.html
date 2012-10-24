@@ -66,18 +66,22 @@
 
 	function loadTest()
 	{	
-/*		minimize = new DOM.Effect.ScalableEffect(DOM.EffectEngine,DOM.ElementInterface,{margin:45,width:10,height:10,top:25});
-
+		minimize = new DOM.Effect.ScalableEffect(DOM.EffectEngine,DOM.ElementInterface,{margin:45,width:10,height:10,top:25});
 		restore = new DOM.Effect.ScalableEffect(DOM.EffectEngine,DOM.ElementInterface,{margin:0,width:100,height:100,top:0});
+		
+		offsetEffect = new DOM.Effect.ScalableEffect(DOM.EffectEngine,DOM.ElementInterface.Offset,{left:'+100'});
+
 
 		blinkAnimation = 
 			DOM.Animation.create(minimize,$$('div#colors div'),{duration:400})
 			.concat(
 			DOM.Animation.create(restore,$$('div#colors div'),{duration:400}));
-*/			
-		offsetEffect = new DOM.Effect.ScalableEffect(DOM.EffectEngine,DOM.ElementInterface.Offset,{left:100,top:300});
+
 		
-		offsetAnimation = new DOM.Animation(offsetEffect,$$('div#colors'),{duration:600});
+		offsetAnimation = new DOM.Animation(offsetEffect,$$('div#colors'),{duration:800});
+		
+		offsetAnimation.run();
+		blinkAnimation.run();
 	}
 	</script>
 </head>

@@ -38,7 +38,16 @@ DOM.ElementInterface = function(properties){
 }
 
 DOM.ElementInterface.Offset = function(){
-	this.init = function(){};
+	this.init = function(element,properties){
+		for(var i in properties)
+		{
+			var prefix = (''+properties[i]).charAt(0);
+			if(prefix=='+')
+				properties[i] = element.offset[i]()+DOM.helper.asNumber(properties[i]);
+			else if(prefix=='+')
+				properties[i] = element.offset[i]()-DOM.helper.asNumber(properties[i]);
+		}
+	};
 	
 	this.read = function(element){
 		var state = {};
@@ -56,7 +65,7 @@ DOM.ElementInterface.Offset = function(){
 
 
 /** ******************************************************************************************************************* DOM.EffectEngine
-* DOM.EffectEngine : 
+* DOM.EffectEngine
 */
 DOM.EffectEngine = function(){
 	this.id = 'DOM.EffectEngine::'+DOM.EffectEngine.staticID++;
