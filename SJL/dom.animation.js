@@ -37,23 +37,9 @@ DOM.ElementInterface = function(properties){
 	};
 }
 
-DOM.ElementInterface.OffsetRelative = function(){
+DOM.ElementInterface.Offset = function(){
 	this.init = function(){};
 	
-	this.read = function(element){
-		var state = {};
-		for(var i in this.properties)
-			state[i] = 0;
-		return state;
-	};
-
-	this.write = function(element,state){
-		for(var i in this.properties)
-			element.offsetAction(i,state[i]);
-	};
-}.inherits(DOM.ElementInterface);
-
-DOM.ElementInterface.OffsetAbsolute = function(){
 	this.read = function(element){
 		var state = {};
 		for(var i in this.properties)
@@ -63,9 +49,10 @@ DOM.ElementInterface.OffsetAbsolute = function(){
 
 	this.write = function(element,state){
 		for(var i in this.properties)
-			element.offsetAction(i,(state[i]>0 ? '+' : '-')+Math.abs(state[i]));
+			element.offsetAction(i,state[i]);
 	};
-}.inherits(DOM.OffsetRelative);
+}.inherits(DOM.ElementInterface);
+
 
 
 /** ******************************************************************************************************************* DOM.EffectEngine
