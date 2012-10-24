@@ -96,16 +96,16 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 	for(var i=paramChannels.length-1;i>=0;i--)
 		paramMap[i] = paramChannels[i].apply(null,paramMap[paramChannels[i].parent]);
 
-	Class._lastCreated = new constructor;
+	child._caller._instance = new constructor;
 	for(var i=0;i<parents.length;i++)
 	{
-		Class._lastCreated.constructor = child._caller._constructors[i]._caller || child._caller._constructors[i];
-		Class._applyConstructor(parents[i],Class._lastCreated,paramMap[i],constructor);
+		child._caller._instance.constructor = child._caller._constructors[i]._caller || child._caller._constructors[i];
+		Class._applyConstructor(parents[i],child._caller._instance,paramMap[i],constructor);
 	}
-	Class._lastCreated.constructor = child._caller;
-	Class._applyConstructor(child,Class._lastCreated,args,constructor);
+	child._caller._instance.constructor = child._caller;
+	Class._applyConstructor(child,child._caller._instance,args,constructor);
 
-	return Class._lastCreated;
+	return child._caller._instance;
 }
 
 
@@ -207,11 +207,7 @@ Class.prototype.super = function()
 		if(parentClass!==false)
 			i = parentClass;
 
-		// ! creating the superinstance can divert the Class._lastCreated reference !
-		t = Class._lastCreated; // << so save it
-		// do the construction :
 		this.constructor._supers[i]._instance || (this.constructor._supers[i]._instance = new this.constructor._supers[i]);
-		Class._lastCreated = t; // << and place it back where it should point
 		
 		if(arguments.length)
 		{
