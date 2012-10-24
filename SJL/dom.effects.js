@@ -1,6 +1,26 @@
 /**
 * Absolutely under construction
 */
+DOM.NumericEffect = function(condition,engine,read,write){
+
+	this.condition = condition;
+	this.engine = engine;
+	this.read = read;
+	this.write = write;
+	
+	this.action = function(effectHandler){
+		effectHandler.data.effect = this;
+		effectHandler.foreach(function(iterator){
+			var state = i.data.effect.read(this);
+			state = i.data.effect.engine.call(this,iterator.properties,state);
+			i.data.effect.write.call(this,state);
+		});
+	}
+};
+
+
+
+
 DOM.effectHandler = function(elements,effectType,properties){
 
 	this.protected({
@@ -64,8 +84,7 @@ DOM.effects = {
 			this.createLoop(i.name(),
 				function(){return this.offset.left()!=i.properties.x || this.offset.top()!=i.properties.y},
 				function(){
-					var arrived = 0,
-						myRect = this.offset.rect(),
+					var myRect = this.offset.rect(),
 						stepX = Math.max(1,parseInt(Math.abs(myRect.left-i.properties.x)/10)),
 						stepY = Math.max(1,parseInt(Math.abs(myRect.top-i.properties.y)/10));
 
@@ -73,15 +92,11 @@ DOM.effects = {
 						this.offset.left('-'+stepX);
 					else if(myRect.left<i.properties.x)
 						this.offset.left('+'+stepX);
-					else
-						arrived++;
 
 					if(myRect.top>i.properties.y)
 						this.offset.top('-'+stepY);
 					else if(myRect.top<i.properties.y)
 						this.offset.top('+'+stepY);
-					else
-						arrived++;
 				},
 				final || i.properties.final,
 				i.properties.timeout || DOM.defaults.loopTimeout
@@ -103,8 +118,7 @@ DOM.effects = {
 					return this.offset.left()!=this.data[i.name()].x || this.offset.top()!=this.data[i.name()].y
 				},
 				function(){
-					var arrived = 0,
-						myRect = this.offset.rect(),
+					var myRect = this.offset.rect(),
 						stepX = Math.max(1,parseInt(Math.abs(myRect.left-this.data[i.name()].x)/10)),
 						stepY = Math.max(1,parseInt(Math.abs(myRect.top-this.data[i.name()].y)/10));
 
@@ -112,15 +126,11 @@ DOM.effects = {
 						this.offset.left('-'+stepX);
 					else if(myRect.left<this.data[i.name()].x)
 						this.offset.left('+'+stepX);
-					else
-						arrived++;
 
 					if(myRect.top>this.data[i.name()].y)
 						this.offset.top('-'+stepY);
 					else if(myRect.top<this.data[i.name()].y)
 						this.offset.top('+'+stepY);
-					else
-						arrived++;
 				},
 				final || i.properties.final,
 				i.properties.timeout || DOM.defaults.loopTimeout
