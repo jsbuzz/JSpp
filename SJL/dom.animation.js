@@ -70,45 +70,129 @@ DOM.ElementInterface.Offset = function(){
 DOM.EffectEngine = function(){
 	this.id = 'DOM.EffectEngine::'+DOM.EffectEngine.staticID++;
 
+	//------------------------------------------------------------------------------------------ DOM.EffectEngine::init
 	this.init = function(element,initState,target,animation){
 		var numberOfSteps = animation.details.stepCount;
-		
-		this.elements = (this.elements || []).concat([element]);
 
-		element.data[this.id] = {};
-		element.data[this.id].normalSteps = {};
-		element.data[this.id].finalSteps = {};
-		element.data[this.id].initState = initState;
+		this.$(element).normalSteps = {};
+		this.$(element).finalSteps = {};
 
 		for(var i in initState)
 		{
-			element.data[this.id].normalSteps[i] = parseInt((target[i]-initState[i])/(numberOfSteps));
-			element.data[this.id].finalSteps[i] = (target[i]-initState[i])-element.data[this.id].normalSteps[i]*(numberOfSteps-1);
+			this.$(element).normalSteps[i] = parseInt((target[i]-initState[i])/(numberOfSteps));
+			this.$(element).finalSteps[i] = (target[i]-initState[i])-this.$(element).normalSteps[i]*(numberOfSteps-1);
 		}
 	};
 
-	this.step = function(element,animation){
-		for(var i in element.data[this.id].initState)
+	//------------------------------------------------------------------------------------------ DOM.EffectEngine::step
+	this.step = function(element,state,animation){
+		for(var i in state)
 		{
-			element.data[this.id].initState[i] += (
+			state[i] += (
 				animation.protected.step == animation.details.stepCount-1 ? 
-					element.data[this.id].finalSteps[i]
+					this.$(element).finalSteps[i]
 					:
-					element.data[this.id].normalSteps[i]
+					this.$(element).normalSteps[i]
 			);
 		}
 			
-		return element.data[this.id].initState;
+		return state;
 	};
 	
+	//--------------------------------------------------------------------------------------- DOM.EffectEngine::cleanup
 	this.cleanup = function(){
 		for(var i in this.elements)
 			delete this.elements[i].data[this.id];
 			
 		delete this.elements;
 	};
+	
+	//--------------------------------------------------------------------------------------------- DOM.EffectEngine::$
+	this.$ = function(element){
+		if(!element.data[this.id])
+		{
+			this.elements || (this.elements = []);
+			this.elements.push(element);
+			element.data[this.id] = {};
+		}
+		return element.data[this.id];
+	};
+
 };
 DOM.EffectEngine.staticID = 0;
+
+
+/**
+* DOM.EffectEngine.Shifted
+*/
+DOM.EffectEngine.Shifted = function(direction){
+	this.shiftDirection = direction || 1;
+	
+	//---------------------------------------------------------------------------------- DOM.EffectEngine.Shifted::init
+	this.init = function(element,initState,target,animation){
+		var numberOfSteps = animation.details.stepCount;
+		
+		this.$(element).steps = {};
+
+		// for all the properties to change
+		for(var prop in initState)
+		{
+			this.$(element).steps[prop] = new Array(numberOfSteps); // for state modifications
+
+			var steps = this.$(element).steps[prop],
+			    normalStep = parseInt((target[prop]-initState[prop])/(numberOfSteps)),
+					extra = (target[prop]-initState[prop])-normalStep*(numberOfSteps),
+					i = 0;
+
+			for(i=0;i<numberOfSteps;i++)
+				steps[i] = normalStep;
+
+			DOM.EffectEngine.Shifted.shiftArray(steps,this.shiftDirection);
+
+			i = this.shiftDirection<0 ? numberOfSteps+this.shiftDirection : 0;
+			while(extra-->0)
+			{
+				++steps[i];
+				i+=this.shiftDirection;
+			}
+		}
+	};
+
+	//---------------------------------------------------------------------------------- DOM.EffectEngine.Shifted::step
+	this.step = function(element,state,animation){
+		for(var i in state)
+		{
+			state[i] += this.$(element).steps[i][animation.protected.step];
+		}
+			
+		return state;
+	};
+}.inherits(DOM.EffectEngine);
+
+
+/**
+* DOM.EffectEngine.Shifted.shiftArray (array,direction,pos)
+* helper function for DOM.EffectEngine.Shifted objects
+*/
+DOM.EffectEngine.Shifted.shiftArray = function(array,direction,pos){
+	direction = direction ? direction/Math.abs(direction) : 1;
+	var i = pos===undefined ? (direction>0 ? 0 : array.length-1) : pos,
+	    pos = i,
+			nextStep = true;
+	i+=direction;
+	while(i>=0 && i<array.length)
+	{
+		array[pos]++;
+		--array[i];
+		nextStep = nextStep && (array[i] > 1);
+		i+=direction;
+	}
+	i = pos+direction;
+	if(nextStep && i>=0 && i<array.length)
+		DOM.EffectEngine.Shifted.shiftArray(array,direction,i);
+	return array;
+};
+
 
 
 /** ******************************************************************************************************************* DOM.Effect
@@ -132,7 +216,7 @@ DOM.Effect.ScalableEffect = function(engine,interface,properties){
 	};
 	
 	this.step = function(element,animation){
-		this.interface.write(element,this.engine.step(element,animation));
+		this.interface.write(element,this.engine.step(element,this.interface.read(element),animation));
 	};
 	
 	this.cleanup = function(){this.engine.cleanup();};
@@ -142,7 +226,7 @@ DOM.Effect.ScalableEffect = function(engine,interface,properties){
 /** ******************************************************************************************************************* DOM.Animation
 * DOM.Animation
 */
-DOM.Animation = function(effects,elements,details){
+DOM.Animation = function(effects,details,elements){
 
 	this.effects = ArrayIterator.for(effects instanceof Array ? effects : [effects]);
 	this.elements = Class.instanceOf(elements,DOM.Iterator) ? elements : DOM.Iterator.for([elements]);
@@ -190,6 +274,11 @@ DOM.Animation = function(effects,elements,details){
 		this.protected.step = 0;
 		this.protected.initDone = true;
 	};
+	
+	this.apply = function(elements){
+		this.elements = Class.instanceOf(elements,DOM.Iterator) ? elements : DOM.Iterator.for([elements]);
+		this.run();
+	}
 	
 	this.run = function(){
 		this.step(true);
