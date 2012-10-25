@@ -10,13 +10,33 @@ DOM.NumericEffect = function(condition,engine,read,write){
 	
 	this.action = function(effectHandler){
 		effectHandler.data.effect = this;
-		effectHandler.foreach(function(iterator){
-			var state = i.data.effect.read(this);
-			state = i.data.effect.engine.call(this,iterator.properties,state);
+		effectHandler.foreach(function(i){
+			var state = i.data.effect.read.call(this,i.properties);
+			i.data.effect.engine.call(this,iterator.properties,state);
 			i.data.effect.write.call(this,state);
 		});
 	}
 };
+
+DOM.Effect.cssRead = function(properties){
+	var style = this.computedStyle(),
+	    state = {};
+	for(var i in properties)
+	{
+		if(style[i]!==undefined)
+			state[i] = style[i];
+	}
+	return state;
+}
+
+DOM.Effect.offsetRead = function(properties){
+	var state = {};
+	for(var i in properties)
+	{
+		state[i] = this.offsetAction(i);
+	}
+	return state;
+}
 
 
 
