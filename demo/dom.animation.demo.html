@@ -46,6 +46,8 @@
 		}
 		
 		div#colors div {
+			color: white;
+			font-size: 12px;
 			width:100px;
 			height:100px;
 			position: relative;
@@ -68,35 +70,42 @@
 	{	
 		minimize = new DOM.Effect.ScalableEffect(DOM.EffectEngine,DOM.ElementInterface,{margin:45,width:10,height:10,top:25});
 		restore = new DOM.Effect.ScalableEffect(DOM.EffectEngine,DOM.ElementInterface,{margin:0,width:100,height:100,top:0});
-		
-		offsetEffect = new DOM.Effect.ScalableEffect(DOM.EffectEngine.Shifted,DOM.ElementInterface.Offset,{left:400});
-
 
 		blinkAnimation = 
 			DOM.Animation.create(minimize,{duration:400},$$('div#colors div'))
 			.concat(
 			DOM.Animation.create(restore,{duration:400},$$('div#colors div')));
+		
+		$('#red').innerHTML = 'flat';
+		$('#green').innerHTML = 'burst';
+		$('#blue').innerHTML = 'accelerate';
+	}
+	
+	function engineDifference(step)
+	{
+		$$('#colors div').foreach(DOM.Element.customMethods.stop);
 
-		
-		offsetAnimation = new DOM.Animation(offsetEffect,{duration:400},$('div#colors'));
-
-		
-		//offsetAnimation.apply($('div#colors'));
-		
-		//offsetAnimation.run();
-		//blinkAnimation.run();
+		var showTheDifference = function(){
+			DOM.Animation.factory({duration:800,width:800,engine:'flat'}).apply($('#red'));
+			DOM.Animation.factory({duration:800,width:800,engine:'burst'}).apply($('#green'));
+			DOM.Animation.factory({duration:800,width:800,engine:'accelerate'}).apply($('#blue'));
+		};
+		DOM.Animation.factory({duration:200,width:100,height:100},$$('#colors div')).concat(
+			DOM.Animation.factory({duration:800,width:100,height:100},$$('#colors div'),showTheDifference)
+		).run();
 	}
 	</script>
 </head>
 
 <body onload="loadTest()">
-	<h1>DOM.Effect tests <span>using <strong>SJL/dom.js</strong><br/>Standard Js++ Library</span></h1>
+	<h1>DOM.Animation tests <span>using <strong>SJL/dom.js</strong><br/>Standard Js++ Library</span></h1>
 	
 	<div id="colors">
 		<div id="red"></div>
 		<div id="green"></div>
 		<div id="blue"></div>
 	</div>
+	<button onclick="engineDifference()">engine differences</button>
 
 </body>
 </html>

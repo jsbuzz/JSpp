@@ -328,6 +328,10 @@ DOM.Element = function(element){
 	// for passing variables
 	this.data = {};
 	
+	// custom methods
+	for(var i in DOM.Element.customMethods)
+		this[i] = DOM.Element.customMethods[i];
+		
 	
 	// loops
 	this.createLoop = function(name,condition,action,final,timeout){
@@ -363,3 +367,5 @@ DOM.Element = function(element){
 		return this.loops[name];
 	};
 };
+
+DOM.Element.customMethods = {};

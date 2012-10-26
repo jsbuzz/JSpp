@@ -140,14 +140,21 @@ DOM.EffectEngine.Shifted = function(direction){
 			this.$(element).steps[prop] = new Array(numberOfSteps); // for state modifications
 
 			var steps = this.$(element).steps[prop],
-			    normalStep = parseInt((target[prop]-initState[prop])/(numberOfSteps)),
-					extra = (target[prop]-initState[prop])-normalStep*(numberOfSteps),
+			    diff = Math.abs(target[prop]-initState[prop]),
+			    normalStep = parseInt(diff/(numberOfSteps)),
+					extra = diff-normalStep*(numberOfSteps),
 					i = 0;
+			
+			this.$(element).direction = target[prop] > initState[prop] ? 1 : -1;
 
 			for(i=0;i<numberOfSteps;i++)
 				steps[i] = normalStep;
 
-			DOM.EffectEngine.Shifted.shiftArray(steps,this.shiftDirection);
+			// brutally shift the array
+			while(DOM.EffectEngine.Shifted.shiftArray(steps,this.shiftDirection));
+			i = this.shiftDirection<0 ? numberOfSteps+this.shiftDirection : 0;
+			for(i;i<steps.length-1 && i>=0;i+=this.shiftDirection)
+				DOM.EffectEngine.Shifted.shiftArray(steps,this.shiftDirection,i);
 
 			i = this.shiftDirection<0 ? numberOfSteps+this.shiftDirection : 0;
 			while(extra-->0)
@@ -162,12 +169,16 @@ DOM.EffectEngine.Shifted = function(direction){
 	this.step = function(element,state,animation){
 		for(var i in state)
 		{
-			state[i] += this.$(element).steps[i][animation.protected.step];
+			state[i] += this.$(element).direction * this.$(element).steps[i][animation.protected.step];
 		}
-			
+
 		return state;
 	};
 }.inherits(DOM.EffectEngine);
+
+DOM.EffectEngine.Flat = DOM.EffectEngine;
+DOM.EffectEngine.Burst = function(){}.inherits(DOM.EffectEngine.Shifted,'()=>DOM.EffectEngine.Shifted(1)');
+DOM.EffectEngine.Accelerate = function(){}.inherits(DOM.EffectEngine.Shifted,'()=>DOM.EffectEngine.Shifted(-1)');
 
 
 /**
@@ -182,15 +193,19 @@ DOM.EffectEngine.Shifted.shiftArray = function(array,direction,pos){
 	i+=direction;
 	while(i>=0 && i<array.length)
 	{
-		array[pos]++;
-		--array[i];
+		if(array[i]>1)
+		{
+			array[pos]++;
+			--array[i];
+		}
 		nextStep = nextStep && (array[i] > 1);
 		i+=direction;
 	}
 	i = pos+direction;
 	if(nextStep && i>=0 && i<array.length)
-		DOM.EffectEngine.Shifted.shiftArray(array,direction,i);
-	return array;
+		nextStep = DOM.EffectEngine.Shifted.shiftArray(array,direction,i);
+
+	return nextStep;
 };
 
 
@@ -220,18 +235,20 @@ DOM.Effect.ScalableEffect = function(engine,interface,properties){
 	};
 	
 	this.cleanup = function(){this.engine.cleanup();};
-}.inherits(DOM.Effect);
+}.inherits(DOM.Effect,'(engine,interface,properties)=>DOM.Effect(properties)');
 
 
 /** ******************************************************************************************************************* DOM.Animation
 * DOM.Animation
 */
-DOM.Animation = function(effects,details,elements){
+DOM.Animation = function(effects,details,elements,_finally){
 
 	this.effects = ArrayIterator.for(effects instanceof Array ? effects : [effects]);
 	this.elements = Class.instanceOf(elements,DOM.Iterator) ? elements : DOM.Iterator.for([elements]);
 	this.details = details instanceof Object ? details : {};
-	this.finally = 0;
+	this.finally = _finally;
+	
+	this.id = DOM.Animation.id++;
 	
 	this.effects.foreach(function(){
 		if(!Class.instanceOf(this,DOM.Effect))
@@ -249,8 +266,10 @@ DOM.Animation = function(effects,details,elements){
 			this.protected.initDone = false;
 			
 			this.effects.foreach(function(){this.cleanup()});
+			var animation = this;
+			this.elements.foreach(function(){delete this.runningAnimations[animation.id]});
 
-			if(this.finally)
+			if(typeof(this.finally)=='function')
 				this.finally();
 			if(this.protected.next)
 				this.protected.next.run();
@@ -294,6 +313,8 @@ DOM.Animation = function(effects,details,elements){
 				var effect = this,
 				    animation = $.animation;
 				$.animation.elements.foreach(function(){
+					this.runningAnimations || (this.runningAnimations = {});
+					this.runningAnimations[animation.id] = animation;
 					effect.step(this/*element*/,animation);
 				});
 			});
@@ -321,7 +342,55 @@ DOM.Animation = function(effects,details,elements){
 			throw new Error('DOM.Animation::concat invalid parameter for sibling!');
 		this.protected.next = sibling;
 		return this;
+	};
+};
+DOM.Animation.id = 0;
+
+DOM.Animation.create = function(effects,details,elements,_finally){return new this(effects,details,elements,_finally)};
+DOM.Animation.factory = function(properties,elements,_finally){
+
+	var effects = [],offsetChanges = false,cssChanges = false,engine = 'flat',details = {};
+	
+	// 
+	for(var i in properties)
+	{
+		if(i=='duration')
+		{
+			details.duration = properties[i];
+		}
+		else if(i=='engine')
+		{
+			engine = properties[i];
+		}
+		else if(i=='left' || i=='right' || i=='top' || i=='bottom')
+		{
+			offsetChanges || (offsetChanges = {});
+			offsetChanges[i] = properties[i];
+		}
+		else
+		{
+			cssChanges || (cssChanges = {});
+			cssChanges[i] = properties[i];
+		}
 	}
+	
+	switch(engine)
+	{
+		case 'accelerate' : engine = DOM.EffectEngine.Accelerate; break;
+		case 'burst'      : engine = DOM.EffectEngine.Burst; break;
+		default           : engine = DOM.EffectEngine.Flat;
+	}
+
+	if(offsetChanges)
+		effects.push(new DOM.Effect.ScalableEffect(engine,DOM.ElementInterface.Offset,offsetChanges));
+
+	if(cssChanges)
+		effects.push(new DOM.Effect.ScalableEffect(engine,DOM.ElementInterface,cssChanges));
+
+	return new DOM.Animation(effects,details,elements,_finally);
 };
 
-DOM.Animation.create = function(effects,elements,details){return new this(effects,elements,details)};
+DOM.Element.customMethods.stop = function(){
+	for(var i in this.runningAnimations)
+		this.runningAnimations[i].stop();
+}
