@@ -179,6 +179,7 @@ DOM.EffectEngine.Shifted = function(direction){
 DOM.EffectEngine.Flat = DOM.EffectEngine;
 DOM.EffectEngine.Burst = function(){}.inherits(DOM.EffectEngine.Shifted,'()=>DOM.EffectEngine.Shifted(1)');
 DOM.EffectEngine.Accelerate = function(){}.inherits(DOM.EffectEngine.Shifted,'()=>DOM.EffectEngine.Shifted(-1)');
+DOM.EffectEngine.Lazy = DOM.EffectEngine.Accelerate;
 
 
 /**
@@ -377,6 +378,7 @@ DOM.Animation.factory = function(properties,elements,_finally){
 	switch(engine)
 	{
 		case 'accelerate' : engine = DOM.EffectEngine.Accelerate; break;
+		case 'lazy'       : engine = DOM.EffectEngine.Lazy; break;
 		case 'burst'      : engine = DOM.EffectEngine.Burst; break;
 		default           : engine = DOM.EffectEngine.Flat;
 	}
