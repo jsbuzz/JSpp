@@ -47,6 +47,7 @@
 		
 		div#colors div {
 			color: white;
+			padding: 4px;
 			font-size: 12px;
 			width:100px;
 			height:100px;
@@ -79,6 +80,12 @@
 		$('#red').innerHTML = 'flat';
 		$('#green').innerHTML = 'burst';
 		$('#blue').innerHTML = 'accelerate';
+		
+		$$('div#colors div').foreach(function(){
+			this.events.listen('click').handler = function(){
+				DOM.Animation.factory({duration:800,width:800,engine:this.innerHTML}).apply(this);
+			}
+		});
 	}
 	
 	function engineDifference(step)
@@ -94,6 +101,11 @@
 			DOM.Animation.factory({duration:800,width:100,height:100},$$('#colors div'),showTheDifference)
 		).run();
 	}
+	
+	function reset()
+	{
+		DOM.Animation.factory({duration:200,width:100,height:100},$$('#colors div')).run();
+	}
 	</script>
 </head>
 
@@ -101,11 +113,13 @@
 	<h1>DOM.Animation tests <span>using <strong>SJL/dom.js</strong><br/>Standard Js++ Library</span></h1>
 	
 	<div id="colors">
+		<b>Animation engine types:</b>
 		<div id="red"></div>
 		<div id="green"></div>
 		<div id="blue"></div>
 	</div>
-	<button onclick="engineDifference()">engine differences</button>
+	<button onclick="engineDifference()">run all</button>
+	<button onclick="reset()">reset</button>
 
 </body>
 </html>
