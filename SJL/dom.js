@@ -1,7 +1,7 @@
-/**
-* Absolutely under construction
-*/
 
+/** ******************************************************************************************************************** DOM
+* DOM
+*/
 var DOM = {
 	helper : {
 		asNumber : function(value){
@@ -20,7 +20,7 @@ var DOM = {
 };
 
 
-/**
+/** ******************************************************************************************************************** DOM.Iterator
 * DOM.Iterator
 * This tool with help you handle DOM element groups.
 */
@@ -42,31 +42,32 @@ DOM.Iterator = function(){
 }.inherits(ArrayIterator);
 
 
-/**
+/** ******************************************************************************************************************** DOM.Element
 * DOM.Element
 * This class gives the basic HTMLElement objects extended functionality
 */
 DOM.Element = function(element){
 
+	//------------------------------------------------------------------------------------------------------ constructor
 	if(element!==undefined)
 	{
 		if(typeof(element)=='string')
 			element = document.querySelector(element);
 
-		if(typeof(element)=='object' && element._jspp === undefined)
+		if(element instanceof HTMLElement && element._jspp === undefined)
 			DOM.Element.apply(element)
 
 		return element;
 	}
 
-	// check if extension is done
+	// check if extension is already done
 	if(this._jspp !== undefined)
 		return this;
 	else
 		this._jspp = true;
 
 
-	// style
+	//------------------------------------------------------------------------------------------------------------ style
 	this.css = function(addendum)
 	{
 		for(var i in addendum)
@@ -78,12 +79,12 @@ DOM.Element = function(element){
 	};
 
 
-	// helpers
+	//---------------------------------------------------------------------------------------------------------- helpers
 	this.computedStyle = function(){return window.getComputedStyle(this);};
 	this.clientRect = function(){return this.getBoundingClientRect();};
 
 
-	// query
+	//------------------------------------------------------------------------------------------------------------ query
 	this.query = function(query){
 		return DOM.Iterator.for(this.querySelectorAll(query));
 	};
@@ -97,7 +98,7 @@ DOM.Element = function(element){
 
 	// dimensions
 	this.dimensions = {
-		//-------------------------------------------------------------------------------------------- dimensions.width
+		//--------------------------------------------------------------------------------------------- dimensions.width
 		width : function(set){
 
 			if(set===undefined)
@@ -122,7 +123,7 @@ DOM.Element = function(element){
 
 			return this.css({width : (set-extraWidth)+'px'});
 		}.bind(this),
-		//------------------------------------------------------------------------------------------- dimensions.height
+		//-------------------------------------------------------------------------------------------- dimensions.height
 		height : function(set){
 
 			if(set===undefined)
@@ -152,7 +153,7 @@ DOM.Element = function(element){
 	};
 
 
-	// offset
+	//----------------------------------------------------------------------------------------------------------- offset
 	this.offsetAction = function(direction,value){
 		var real = this.clientRect()[direction],
 			set = {};
@@ -206,7 +207,7 @@ DOM.Element = function(element){
 
 	// events
 	this.events = {
-		//----------------------------------------------------------------------------------------------- events.create
+		//------------------------------------------------------------------------------------------------ events.create
 		create : function(event){
 			
 			// create listener
@@ -243,7 +244,7 @@ DOM.Element = function(element){
 			return this.events[event];
 		}.bind(this),
 		
-		//----------------------------------------------------------------------------------------------- events.listen
+		//------------------------------------------------------------------------------------------------ events.listen
 		listen : function(event,onEventMode){
 			this.events.create(event);
 			if(!this.events[event+'Listener'].active)
@@ -261,7 +262,7 @@ DOM.Element = function(element){
 			return this.events[event];
 		}.bind(this),
 
-		//------------------------------------------------------------------------------------------------- events.stop
+		//-------------------------------------------------------------------------------------------------- events.stop
 		stop : function(event){
 			this.events.create(event);
 			if(this.events[event+'Listener'].active)
@@ -275,7 +276,7 @@ DOM.Element = function(element){
 			return this.events[event];
 		}.bind(this),
 		
-		//------------------------------------------------------------------------------------- events.disableListeners
+		//-------------------------------------------------------------------------------------- events.disableListeners
 		disableListeners : function(event,list){
 			for(var i in list)
 			{
@@ -284,7 +285,7 @@ DOM.Element = function(element){
 			return this.events;
 		}.bind(this),
 
-		//-------------------------------------------------------------------------------------- events.enableListeners
+		//--------------------------------------------------------------------------------------- events.enableListeners
 		enableListeners : function(event,list){
 			for(var i in list)
 			{
@@ -293,7 +294,7 @@ DOM.Element = function(element){
 			return this.events;
 		}.bind(this),
 
-		//---------------------------------------------------------------------------------------------- events.trigger
+		//----------------------------------------------------------------------------------------------- events.trigger
 		trigger : function(event,data){
 			var evt = document.createEvent('Event');
 			evt.initEvent(event, true, true);
@@ -301,13 +302,13 @@ DOM.Element = function(element){
 			return this.dispatchEvent(evt);
 		}.bind(this),
 
-		//-------------------------------------------------------------------------------------- events.preventOriginal
+		//--------------------------------------------------------------------------------------- events.preventOriginal
 		preventOriginal : function(event){
 			(this)['on'+event] = function(){return false;}
 			return this.events;
 		}.bind(this),
 
-		//------------------------------------------------------------------------------------------------ basic events
+		//------------------------------------------------------------------------------------------------- basic events
 		click     : {},
 		dblclick  : {},
 		mousedown : {},
@@ -333,7 +334,7 @@ DOM.Element = function(element){
 		this[i] = DOM.Element.customMethods[i];
 		
 	
-	// loops
+	//------------------------------------------------------------------------------------------------------- createLoop
 	this.createLoop = function(name,condition,action,final,timeout){
 		this.loops || (this.loops = {});
 	

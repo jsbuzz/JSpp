@@ -60,6 +60,7 @@
 	</style>
 
 	<script type="text/javascript" src="../js++.js"></script>
+	<script type="text/javascript" src="../SJL/access.js"></script>
 	<script type="text/javascript" src="../SJL/iterators.js"></script>
 	<script type="text/javascript">
 
@@ -89,7 +90,7 @@
 		
 		var concatInfinite = function(i,step,carry){
 			if(step < 30)
-				carry.result = carry.result ? carry.result+', '+i.current() : i.current();
+				carry.result = (carry.result ? carry.result : '')+i.current()+', ';
 			else
 				return false // -> break
 		};
@@ -117,7 +118,7 @@
 		debug(
 			'Infinite( Odd( Reverse( Iterator ))) [1,2,3,4,5] : <b>'
 			+ Infinite(Odd(Reverse(Iterator.for([1,2,3,4,5])))).foreach(concatInfinite).result+'</b>'
-			+ ', ...'
+			+ ' ...'
 		);
 
 
@@ -146,17 +147,17 @@
 		);
 		debug(
 			"Even(spanIterator).foreach(function(i){\n\ti.current().style.backgroundColor = '#eee';\n});\n"
-			+ "<button onclick=\"Even(spanIterator).foreach(function(i){i.current().style.backgroundColor = '';});\">undo</button> "
-			+ "<button onclick=\"Even(spanIterator).foreach(function(i){i.current().style.backgroundColor = '#eee';});\">redo</button> "
+			+ "<button onclick=\"Even(spanIterator).foreach(function(){this.style.backgroundColor = '';});\">undo</button> "
+			+ "<button onclick=\"Even(spanIterator).foreach(function(){this.style.backgroundColor = '#eee';});\">redo</button> "
 		);
 		spanIterator = new TAG_Iterator(document.getElementById('debug').firstElementChild);
 
-		spanIterator.foreach(function(i){
-			i.current().style.borderBottom = '1px dotted #999';
+		spanIterator.foreach(function(){
+			this.style.borderBottom = '1px dotted #999';
 		});
 		
-		Even(spanIterator).foreach(function(i){
-			i.current().style.backgroundColor = '#eee';
+		Even(spanIterator).foreach(function(){
+			this.style.backgroundColor = '#eee';
 		});
 
 

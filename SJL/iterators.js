@@ -1,5 +1,5 @@
 		
-	/** *************************************************************************************************************** Iterator
+	/** **************************************************************************************************************** Iterator
 	* Iterator interface
 	*/
 	var Iterator = Class.interface(
@@ -60,14 +60,14 @@
 					return tmp;
 			}
 
-			if(this==Iterator)
+			if(this==Iterator) // basic behavior
 			{
 				if(target instanceof Array)
 					return new ArrayIterator(target);
 
 				return new ObjectIterator(target);
 			}
-			return new this(target);
+			return new this(target); // derived classes should prefer their own constructor
 		},
 		
 	//--------------------------------------------------------------------------------------------- Iterator.instance()
@@ -80,7 +80,7 @@
 	);
 
 	
-	/** *************************************************************************************************************** ReversibleIterator
+	/** **************************************************************************************************************** ReversibleIterator
 	* ReversibleIterator : Iterator
 	*/
 	var ReversibleIterator = Class.interface(
@@ -106,7 +106,7 @@
 	.inherits(Iterator);
 
 
-	/** *************************************************************************************************************** ArrayIterator
+	/** **************************************************************************************************************** ArrayIterator
 	* class ArrayIterator : ReversibleIterator
 	*/
 	var ArrayIterator = function(target){
@@ -135,7 +135,7 @@
 	}.inherits(ReversibleIterator);
 
 	
-	/** *************************************************************************************************************** ObjectIterator
+	/** **************************************************************************************************************** ObjectIterator
 	* class ObjectIterator : ReversibleIterator
 	*/
 	var ObjectIterator = function(target){
@@ -148,7 +148,7 @@
 		});
 
 		// 
-		this.cacheKeys = function(){ 
+		this.cacheKeys = function(){
 			this.protected.keys = [];
 			for(var i in this.protected.target)
 				this.protected.keys.push(i);
@@ -157,7 +157,7 @@
 		// Iterator methods
 		this.getTarget = function(){ return this.protected.target; };
 		this.rewind    = function(){ this.cacheKeys();this.protected.position = 0; return this; };
-		this.reverse   = function(){ this.protected.position = this.protected.keys.length-1; return this; };
+		this.reverse   = function(){ this.cacheKeys();this.protected.position = this.protected.keys.length-1; return this; };
 		this.current   = function(){ return this.protected.target[this.protected.keys[this.protected.position]] };
 		this.key       = function(){ return this.protected.keys[this.protected.position] };
 		this.previous  = function(){ this.protected.position--; return this; };
@@ -167,7 +167,7 @@
 	.inherits(ReversibleIterator);
 	
 	
-	/** *************************************************************************************************************** FilteredObjectIterator
+	/** **************************************************************************************************************** FilteredObjectIterator
 	* class FilteredObjectIterator : ObjectIterator
 	*/
 	var FilteredObjectIterator = function(target,condition){
@@ -190,7 +190,7 @@
 	.inherits(ObjectIterator);
 	
 	
-	/** *************************************************************************************************************** PropertyIterator
+	/** **************************************************************************************************************** PropertyIterator
 	* class PropertyIterator : FilteredObjectIterator
 	*/
 	var PropertyIterator = function(target){}
@@ -200,7 +200,7 @@
 		);
 
 
-	/** *************************************************************************************************************** MethodIterator
+	/** **************************************************************************************************************** MethodIterator
 	* class MethodIterator : FilteredObjectIterator
 	*/
 	var MethodIterator = function(target){}
@@ -210,7 +210,7 @@
 		);
 
 
-	/** *************************************************************************************************************** DOM_Iterator
+	/** **************************************************************************************************************** DOM_Iterator
 	* class DOM_Iterator : Iterator
 	*/
 	var DOM_Iterator = function(element){
@@ -271,7 +271,7 @@
 	}.inherits(Iterator);
 
 
-	/** *************************************************************************************************************** TAG_Iterator
+	/** **************************************************************************************************************** TAG_Iterator
 	* class TAG_Iterator : DOM_Iterator
 	*/
 	var TAG_Iterator = function(element,tagName){
@@ -308,7 +308,7 @@
 
 
 
-	/** *************************************************************************************************************** Iterator modifiers
+	/** **************************************************************************************************************** Iterator modifiers
 	* Iterator modifiers
 	* These modifiers are used to modify default iterator behavior.
 	* In case of chaining modifiers always use them in the following order to avoid any incompatibilities:
@@ -316,7 +316,7 @@
 	*/
 
 
-	/** *************************************************************************************************************** Infinite modifier
+	/** **************************************************************************************************************** Infinite modifier
 	* Infinite modifier
 	*/
 	var Infinite = function(iterator){
@@ -343,7 +343,7 @@
 	};
 
 
-	/** *************************************************************************************************************** Odd modifier
+	/** **************************************************************************************************************** Odd modifier
 	* Odd modifier
 	*/
 	var Odd = function(iterator){
@@ -362,7 +362,7 @@
 	};
 
 	
-	/** *************************************************************************************************************** Even modifier
+	/** **************************************************************************************************************** Even modifier
 	* Even modifier
 	*/
 	var Even = function(iterator){
@@ -390,7 +390,7 @@
 	};
 
 
-	/** *************************************************************************************************************** Reverse modifier
+	/** **************************************************************************************************************** Reverse modifier
 	* Reverse modifier
 	*/
 	var Reverse = function(iterator){

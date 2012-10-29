@@ -22,15 +22,15 @@
 * Class - basic functionality
 */
 
-/** ******************************************************************************************************************* Class::constructor
+/** ******************************************************************************************************************** Class::constructor
 * You can use this function to improve readibility of your code or to use multiple ancestors for a new class.
 */
 var Class = function(fn){
-	if(typeof(fn)== 'function')
+	if(typeof(fn)=='function')
 	{
 		Class._provideBasicFunctions(fn,true);
 		return fn;
-	}else if(typeof(fn)=='object' && typeof(fn.length)=='number'){
+	}else if(typeof(fn)=='object' && typeof(fn.length)=='number'){ // wrapper for multiple inheritance
 		var t = function(){};
 		t._isWrapper = fn;
 		return t;
@@ -38,7 +38,7 @@ var Class = function(fn){
 };
 
 
-/** ******************************************************************************************************************* Class::_provideBasicFunctions
+/** ******************************************************************************************************************** Class::_provideBasicFunctions
 * Give basic js++ functionality to a function - and to its prototype
 */
 Class._provideBasicFunctions = function(fn,_prototype,_bind){
@@ -54,20 +54,15 @@ Class._provideBasicFunctions = function(fn,_prototype,_bind){
 			
 		fn.prototype.scope = Class._scope;
 		fn.prototype.protected = Class._protected;
+		fn.prototype.abstract = Class._abstract;
 		fn.prototype.instanceOf = Class.prototype.instanceOf;
 		fn.prototype.super = Class.prototype.super;
 	}
 };
 
 
-/** ******************************************************************************************************************* Class::_lastCreated
-* garbage collector issue fix. We need a global scope for creating the inherited objects 
-* otherwise the GC kills the object after the constructor finishes.
-*/
-Class._lastCreated = null;
 
-
-/** ******************************************************************************************************************* Class::_applyConstructor
+/** ******************************************************************************************************************** Class::_applyConstructor
 * this function applies the given constructor on the object. It also merges the return values and the prototypes.
 */
 Class._applyConstructor = function(fn,obj,args,constructor){
@@ -83,7 +78,7 @@ Class._applyConstructor = function(fn,obj,args,constructor){
 }
 
 
-/** ******************************************************************************************************************* Class::_constructor
+/** ******************************************************************************************************************** Class::_constructor
 * This is the constructor replacement for derived classes. The function applies all the inherited constructors 
 * on the object in the right order.
 */
@@ -94,9 +89,10 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 	var paramMap = new Array(paramChannels.length+1);
 	paramMap[paramChannels.length] = args;
 	for(var i=paramChannels.length-1;i>=0;i--)
-		paramMap[i] = paramChannels[i].apply(null,paramMap[paramChannels[i].parent]);
+		paramMap[i] = paramChannels[i].apply(child._caller,paramMap[paramChannels[i].parent]);
 
-	child._caller._instance = new constructor;
+	child._caller._instance = new constructor; // double profit: GC won't delete the instance 
+	                                          // and the super method will use the last one
 	for(var i=0;i<parents.length;i++)
 	{
 		child._caller._instance.constructor = child._caller._constructors[i]._caller || child._caller._constructors[i];
@@ -105,12 +101,19 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 	child._caller._instance.constructor = child._caller;
 	Class._applyConstructor(child,child._caller._instance,args,constructor);
 
+	/* this will be used in the future
+	if(child._caller._ready)
+	{
+		for(var i=0;i<child._caller._ready.length;i++)
+			child._caller._ready[i].apply(child._caller._instance,args);
+	}*/
+
 	return child._caller._instance;
 }
 
 
 
-/** ******************************************************************************************************************* Class::applyTo
+/** ******************************************************************************************************************** Class::applyTo
 * under construction :)
 */
 Class.applyTo = function(object)
@@ -135,7 +138,7 @@ Class.applyTo = function(object)
 }
 
 
-/** ******************************************************************************************************************* Class::_scope
+/** ******************************************************************************************************************** Class::_scope
 * This is a useful method to add/extend custom scopes to your class to separate submodules
 */
 Class._scope = function(scope,addendum){
@@ -149,7 +152,7 @@ Class._scope = function(scope,addendum){
 };
 
 
-/** ******************************************************************************************************************* Class::_protected
+/** ******************************************************************************************************************** Class::_protected
 * The protected scope is the container for those properties/methods which need to be inheritable but shouldn't be
 * reachable as object.property - they are still reachable but only by typing object.protected.property
 * Using the protected scope is improves your code's readability and consistency
@@ -165,9 +168,24 @@ Class._protected = function(scope){
 };
 
 
+/** ******************************************************************************************************************** Class::_abstract
+* This method is used to add abstract functions to a class similar to Class.interface but within a constructor
+*/
+Class._abstract = function(methods){
+	if(this.abstract == Class._abstract)
+		this.abstract = Class._abstract.bind(this);
+	methods instanceof Array || (methods = Array.prototype.slice.call(arguments));
+
+	for(var i in methods)
+		(this)[methods[i]] = new Function('throw new Error("Abstract method '+methods[i]+'() is not implemented!")');
+
+	return this.abstract;
+};
 
 
-/** ******************************************************************************************************************* Class::_inherits
+
+
+/** ******************************************************************************************************************** Class::_inherits
 * This method links the child and parent classes in the inheritance chain and provides inheritance of the static
 * properties/methods
 */
@@ -184,7 +202,7 @@ Class._inherits = function(child,parent)
 }
 
 
-/** ******************************************************************************************************************* Class.prototype::super
+/** ******************************************************************************************************************** Class.prototype::super
 * access to the super class' methods (only the methods not the properties!)
 */
 Class.prototype.super = function()
@@ -232,7 +250,7 @@ Class.prototype.super = function()
 
 
 
-/** ******************************************************************************************************************* Class::instanceOf and Class.prototype::instanceOf
+/** ******************************************************************************************************************** Class::instanceOf and Class.prototype::instanceOf
 * This is the replacement for the native instanceof operator.
 */
 Class.instanceOf = function(child,parent){return Class.prototype.instanceOf.call(child,parent)};
@@ -262,7 +280,7 @@ Class.prototype.instanceOf = function(parent){
 
 
 
-/** ******************************************************************************************************************* Class::extend
+/** ******************************************************************************************************************** Class::extend
 * This method is for extending all instances of a class on the fly.
 * Use the recursive option to apply the extension on every derived class' instance as well.
 */
@@ -282,7 +300,7 @@ Class.extend = function(addendum,recursive){
 };
 
 
-/** ******************************************************************************************************************* Class::extendStatic
+/** ******************************************************************************************************************** Class::extendStatic
 * This method is for extending the class itself.
 * Use the recursive option to apply the extension on every derived class and make the contents 
 * of the addendum inheritable.
@@ -314,7 +332,7 @@ Class.extendStatic = function(addendum,recursive){
 */
 
 
-/** ******************************************************************************************************************* Function.prototype.derived
+/** ******************************************************************************************************************** Function.prototype.derived
 * This way any function can be the ancestor of others.
 * fixedParams is used to call the ancestor's cosntructor with predefined parameters. 
 * This way you can specialize thru inheritance.
@@ -351,7 +369,7 @@ Function.prototype.derived = function(childConstructor,paramQuery){
 }
 
 
-/** ******************************************************************************************************************* Function.prototype.inherits
+/** ******************************************************************************************************************** Function.prototype.inherits
 * The same as derived, but from the other side
 */
 Function.prototype.inherits = function(parents,paramQuery)
@@ -430,7 +448,7 @@ Function.prototype.inherits = function(parents,paramQuery)
 
 
 
-/** ******************************************************************************************************************* param handling
+/** ******************************************************************************************************************** param handling
 * These tools are made for the readable and smart parameter passing
 */
 Class._paramQuery = function(query){
@@ -480,7 +498,7 @@ Class.paramsFrom = function(paramList){
 }
 
 
-/** ******************************************************************************************************************* Class.interface
+/** ******************************************************************************************************************** Class.interface
 * This toolkit is for creating interfaces - abstract method packages for modelling a functionality
 */
 Class.interface = function(){
@@ -501,7 +519,7 @@ Class.interface = function(){
 };
 
 
-/** ******************************************************************************************************************* Class.interface.check
+/** ******************************************************************************************************************** Class.interface.check
 * This tool is for checking an interface if all its methods are implemented.
 */
 Class.interface.check = function(throwException){

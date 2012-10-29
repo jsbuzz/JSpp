@@ -5,7 +5,7 @@ DOM.defaults.ANIMATION_DURATION = 1000;
 DOM.defaults.ANIMATION_STEP_TIME = 20;
 
 
-/** ******************************************************************************************************************* DOM.ElementInterface
+/** ******************************************************************************************************************** DOM.ElementInterface
 * DOM.ElementInterface
 */
 DOM.ElementInterface = function(properties){
@@ -16,7 +16,7 @@ DOM.ElementInterface = function(properties){
 		for(var i in this.properties)
 		{
 			if(style[i]!==undefined)
-				element.style[i] = style[i];
+				element.style[i] = style[i]; // cache style for reading
 			else
 				delete this.properties[i];
 		}
@@ -64,7 +64,7 @@ DOM.ElementInterface.Offset = function(){
 
 
 
-/** ******************************************************************************************************************* DOM.EffectEngine
+/** ******************************************************************************************************************** DOM.EffectEngine
 * DOM.EffectEngine
 */
 DOM.EffectEngine = function(){
@@ -142,15 +142,15 @@ DOM.EffectEngine.Shifted = function(direction){
 			var steps = this.$(element).steps[prop],
 			    diff = Math.abs(target[prop]-initState[prop]),
 			    normalStep = parseInt(diff/(numberOfSteps)),
-					extra = diff-normalStep*(numberOfSteps),
-					i = 0;
+			    extra = diff-normalStep*(numberOfSteps),
+			    i = 0;
 			
 			this.$(element).direction = target[prop] > initState[prop] ? 1 : -1;
 
 			for(i=0;i<numberOfSteps;i++)
 				steps[i] = normalStep;
 
-			// brutally shift the array
+			// shift the array
 			while(DOM.EffectEngine.Shifted.shiftArray(steps,this.shiftDirection));
 			i = this.shiftDirection<0 ? numberOfSteps+this.shiftDirection : 0;
 			for(i;i<steps.length-1 && i>=0;i+=this.shiftDirection)
@@ -190,7 +190,8 @@ DOM.EffectEngine.Shifted.shiftArray = function(array,direction,pos){
 	direction = direction ? direction/Math.abs(direction) : 1;
 	var i = pos===undefined ? (direction>0 ? 0 : array.length-1) : pos,
 	    pos = i,
-			nextStep = true;
+	    nextStep = true;
+
 	i+=direction;
 	while(i>=0 && i<array.length)
 	{
@@ -211,12 +212,16 @@ DOM.EffectEngine.Shifted.shiftArray = function(array,direction,pos){
 
 
 
-/** ******************************************************************************************************************* DOM.Effect
+/** ******************************************************************************************************************** DOM.Effect
 * DOM.Effect
 */
 DOM.Effect = function(properties){
-	this.init = function(){throw new Error('DOM.Effect::init not implemented')};
-	this.step = function(){throw new Error('DOM.Effect::step not implemented')};
+	
+	this.abstract(
+		'init',
+		'step'
+	);
+
 	this.cleanup = function(){};
 	
 	this.properties = properties;
@@ -239,7 +244,7 @@ DOM.Effect.ScalableEffect = function(engine,interface,properties){
 }.inherits(DOM.Effect,'(engine,interface,properties)=>DOM.Effect(properties)');
 
 
-/** ******************************************************************************************************************* DOM.Animation
+/** ******************************************************************************************************************** DOM.Animation
 * DOM.Animation
 */
 DOM.Animation = function(effects,details,elements,_finally){
