@@ -97,8 +97,8 @@
 			DOM.Animation.factory({duration:800,width:800,engine:'burst'}).apply($('#green'));
 			DOM.Animation.factory({duration:800,width:800,engine:'accelerate'}).apply($('#blue'));
 		};
-		DOM.Animation.factory({duration:200,width:100,height:100},$$('#colors div')).concat(
-			DOM.Animation.factory({duration:800,width:100,height:100},$$('#colors div'),showTheDifference)
+		DOM.Animation.factory({duration:200,width:100,height:100,opacity:10},$$('#colors div')).concat(
+			DOM.Animation.factory({duration:800,opacity:100},$$('#colors div'),showTheDifference)
 		).run();
 	}
 	

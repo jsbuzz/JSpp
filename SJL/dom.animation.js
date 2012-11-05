@@ -25,14 +25,14 @@ DOM.ElementInterface = function(properties){
 	this.read = function(element){
 		var state = {};
 		for(var i in this.properties)
-			state[i] = DOM.helper.asNumber(element.style[i]);
+			state[i] = (i=='opacity' ? 100 : 1 ) * DOM.helper.asNumber(element.style[i]);
 		return state;
 	};
 	
 	this.write = function(element,state){
 		for(var i in this.properties)
 		{
-			element.style[i] = state[i]+'px';
+			element.style[i] = (i=='opacity' ? state[i]/100 : state[i]+'px');
 		}
 	};
 }
@@ -225,6 +225,8 @@ DOM.Effect = function(properties){
 	this.cleanup = function(){};
 	
 	this.properties = properties;
+	if(this.properties.opacity !== undefined && this.properties.opacity<=1)
+		this.properties.opacity *=100;
 };
 
 DOM.Effect.ScalableEffect = function(engine,interface,properties){
