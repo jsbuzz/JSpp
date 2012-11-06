@@ -213,7 +213,7 @@ DOM.EffectEngine.Shifted.shiftArray = function(array,direction,pos){
 
 
 /** ******************************************************************************************************************** DOM.Effect
-* DOM.Effect
+* abstract class DOM.Effect
 */
 DOM.Effect = function(properties){
 	
@@ -370,7 +370,7 @@ DOM.Animation.factory = function(properties,elements,_finally){
 		{
 			engine = properties[i];
 		}
-		else if(i=='left' || i=='right' || i=='top' || i=='bottom')
+		else if(true && (i=='left' || i=='right' || i=='top' || i=='bottom'))
 		{
 			offsetChanges || (offsetChanges = {});
 			offsetChanges[i] = properties[i];
@@ -399,7 +399,50 @@ DOM.Animation.factory = function(properties,elements,_finally){
 	return new DOM.Animation(effects,details,elements,_finally);
 };
 
+
+
+/** ******************************************************************************************************************** DOM extensions
+* DOM extensions (jQuery style :)
+*/
 DOM.Element.customMethods.stop = function(){
 	for(var i in this.runningAnimations)
 		this.runningAnimations[i].stop();
-}
+	this.data.lastAnimation = 0;
+	return this;
+};
+
+DOM.Element.customMethods.animate = function(properties){
+	var element = this,
+	    animation = DOM.Animation.factory(properties,this,function(){element.data.lastAnimation=0;});
+	if(this.data.lastAnimation)
+	{
+		this.data.lastAnimation.finally = 0;
+		this.data.lastAnimation.concat(animation);
+	}
+	else
+		animation.run();
+	this.data.lastAnimation = animation;
+	return this;
+};
+
+
+DOM.Iterator.extend({
+	stop : function(){
+		this.foreach(function(){this.stop()});
+		this.lastAnimation = 0;
+		return this;
+	},
+	animate : function(properties){
+		var group = this,
+		    animation = DOM.Animation.factory(properties,this,function(){group.lastAnimation=0;});
+		if(this.lastAnimation)
+		{
+			this.lastAnimation.finally = 0;
+			this.lastAnimation.concat(animation);
+		}
+		else
+			animation.run();
+		this.lastAnimation = animation;
+		return this;
+	}
+});

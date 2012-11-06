@@ -52,9 +52,9 @@ DOM.Element = function(element){
 	if(element!==undefined)
 	{
 		if(typeof(element)=='string')
-			element = document.querySelector(element);
+			element = element=='document' ? document : document.querySelector(element);
 
-		if(element instanceof HTMLElement && element._jspp === undefined)
+		if((element===document || element instanceof HTMLElement) && element._jspp === undefined)
 			DOM.Element.apply(element)
 
 		return element;
@@ -155,23 +155,23 @@ DOM.Element = function(element){
 
 	//----------------------------------------------------------------------------------------------------------- offset
 	this.offsetAction = function(direction,value){
-		var real = this.clientRect()[direction],
-			set = {};
+		var real = (this)['offset'+direction[0].toUpperCase()+direction.substr(1)],
+		    set = {};
 
 		if(value===undefined)
 			return real;
 
-		var computedStyle = this.computedStyle(),
-		    relative = DOM.helper.asNumber(computedStyle[direction]),
+		var style = this.style[direction]!=='' && this.style['position']!==''  ? this.style : this.computedStyle(),
+		    relative = DOM.helper.asNumber(style[direction]),
 			diff = real-relative;
 
-		if(computedStyle.position=='static')
+		if(style.position=='static')
 			this.css({position : 'relative'});
 
 		if(value===null || typeof(value)=='string' && (value.charAt(0)=='-' || value.charAt(0)=='+'))
 		{
 			if(value===null)
-				set[direction] = '0px';
+				set[direction] = '';
 			else if(value.charAt(0)=='-')
 				set[direction] = (relative-DOM.helper.asNumber(value.substr(1)))+'px';
 			else
@@ -179,10 +179,8 @@ DOM.Element = function(element){
 			return this.css(set);
 		}
 		
-		if(computedStyle.position=='absolute')
-			set[direction] = value+'px';
-		else
-			set[direction] = (value-diff)+'px';
+		set[direction] = (value-diff)+'px';
+		set['position'] = style.position;
 
 		return this.css(set);
 	};
