@@ -1,5 +1,13 @@
 
+		var Smooth = function(action,timeout){
+			this.timeout = timeout || 300;
+			this.action = action;
+			this.start = function(){this.stop();this.timer = window.setTimeout(this.action,this.timeout)};
+			this.stop  = function(){window.clearTimeout(this.timer)};
+		}
 
+
+//-------------------
 $$('.wordTyper').install(WordTyper,{events:true,typeTimeout:400});
 
 $('#searchBox').events
@@ -7,7 +15,7 @@ $('#searchBox').events
 	.handler = function(e){
 		console.info(e.word);
 	};
-
+//-------------------
 
 var WordTyper = function(){
 
@@ -44,6 +52,8 @@ var Component = function(name){
 	};
 };
 
+
+
 var EventHandler = function(){
 
 	this.protected({
@@ -51,7 +61,7 @@ var EventHandler = function(){
 		autoEvents : {}
 	});
 
-	this.EventHandler_ready = function(){
+	this.EventHandler_ready = function(){ // well-well, I am not so sure about this.
 		for(var e in this.protected.events)
 		{
 			if(e.charAt(0)=='!') // autoTrigger
