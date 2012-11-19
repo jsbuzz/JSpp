@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>js++ range demo</title>
+	
+	<style type="text/css">
+		* {
+			font-family: Calibri,Helvetia,sans-serif;
+		}
+
+		body {
+			padding:0;
+			margin:0;
+		}
+		
+		h1{
+			margin:0;
+			padding: 5px 20px;
+			background-color: navy;
+			color: white;
+			border-bottom: 5px solid #555;
+			margin-bottom: 10px;
+		}
+		
+		h1 span{
+			font-size: 13px;
+			color: #ddd;
+			display: inline-block;
+			margin-left: 5px;
+			padding-left: 5px;
+			border-left: 1px solid #ddd;
+		}
+
+		h1 span strong{
+			color: white;
+		}
+
+		
+		pre {
+			margin:0;
+			padding:0;
+		}
+		
+		pre span {
+			padding: 5px 20px;
+			display: block;
+		}
+		
+		pre span b {
+			color: navy;
+		}
+
+		
+		button {
+			font-size: 15px;
+		}
+
+	</style>
+
+	<script type="text/javascript" src="../js++.js"></script>
+	<script type="text/javascript" src="../SJL/iterators.js"></script>
+	<script type="text/javascript" src="../SJL/range.js"></script>
+	<script type="text/javascript">
+
+	_DEBUG = false;
+	
+	function debug(txt,toConsole)
+	{
+		document.getElementById('debug').innerHTML = document.getElementById('debug').innerHTML+'<span>'+(
+				typeof(txt)!='string' ? 
+					JSON.stringify(txt) : 
+					txt
+			)+'</span>';
+		if(toConsole && console && typeof(console.info) == 'function')
+			console.info(txt);
+	}
+
+
+	function loadTest()
+	{
+		var r = new Range(new Range.Item.Char('a'),new Range.Item.Char('e'));
+	}
+	</script>
+
+</head>
+
+<body onload="loadTest()">
+	<h1>Iterator tests <span>using <strong>SJL/range.js</strong><br/>Standard Js++ Library</span></h1>
+	<pre id="debug"></pre>
+</body>
+</html>
