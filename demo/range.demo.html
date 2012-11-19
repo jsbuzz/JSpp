@@ -80,7 +80,9 @@
 
 	function loadTest()
 	{
-		var r = new Range(new Range.Item.Char('a'),new Range.Item.Char('e'));
+		Iterator.foreach(Range.of.Chars('a','z'),function(){
+			debug(this);
+		});
 	}
 	</script>
 
