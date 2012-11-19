@@ -1,23 +1,18 @@
 
-	var Range = function(min, max, step){
+	var Range = function(min, max){
+		if(!Class.instanceOf(min,Range.Item) || !Class.instanceOf(max,Range.Item))
+			throw new TypeError('Range can be declared only by Range.Item instances');
+
 		this.min = min;
 		this.max = max;
-		this.direction = min.less(max) ? 1 : -1;
-		this.step = typeof(step)=='function' ? step : function(i){return i + (min.less(max) ? 1 : -1) * (step || 1)};
-
-		this.defaultStep = typeof(step)!='function';
 
 		this.at = function(index){
-			var min;
-			if(this.defaultStep)
-				return (min = this.direction ? this.min : this.max).create(min.index() + index);
-
-			var current = this.min.index();
-			for(var i = 0; i < index; i++)
-				current = this.step(current);
-			return this.min.create(current);
+			return this.min.create(min.index() + index);
 		};
+
+		//this.
 	};
+
 
 	Range.Item = Class.interface(
 		'index',
@@ -28,11 +23,13 @@
 		range : function(min,max) { return new Range(new this(min),new this(max))}
 	},true);
 
+
 	Range.Item.Integer = function(n){
 		this.number = n;
 		this.index = Number.prototype.valueOf.bind(n);
 		this.create = function(n){return n};
 	}.inherits(Range.Item);
+
 
 	Range.Item.Char = function(c){
 		this.char = c;
