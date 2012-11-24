@@ -79,6 +79,9 @@
 	},true // recursive=true -> all derived classes will inherit these static methods
 	);
 
+	// Alias for global usage
+	var foreach = Iterator.foreach.bind(Iterator);
+
 	
 	/** **************************************************************************************************************** ReversibleIterator
 	* ReversibleIterator : Iterator

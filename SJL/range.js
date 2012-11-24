@@ -84,6 +84,7 @@
 		});
 
 		// Iterator methods
+		this.getTarget = function(){ return this.protected.target; };
 		this.rewind    = function(){ this.protected.position = this.protected.target.min.index(); return this; };
 		this.reverse   = function(){ this.protected.position = this.protected.target.max.index(); return this; };
 		this.current   = function(){ return this.protected.target.at(this.protected.position-this.protected.target.min.index()) };
@@ -95,4 +96,5 @@
 		if(range.flipped)
 			this.flip();
 		this.rewind();
+	
 	}.inherits(ReversibleIterator);

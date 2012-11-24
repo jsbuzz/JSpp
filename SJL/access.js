@@ -1,14 +1,18 @@
 
  
-var Callback = function(object,method,fixedArgs){
-	var callback = function(){return method.apply(object,(fixedArgs || []).concat(Array.prototype.slice.call(arguments)))};
+var Callback = function(method,object,fixedArgs){
+	object = object || this;
+	fixedArgs = fixedArgs || [];
+
+	var callback = function(){return method.apply(object,fixedArgs.concat(Array.prototype.slice.call(arguments)))};
+
 	callback.object = object;
 	callback.method = method;
 	callback.fixedArgs = fixedArgs;
 	
-	callback.asFunction = function(){return Function.prototype.bind.apply(object,[this.object].concat(this.fixedArgs || []))};
+	callback.asFunction = function(){return Function.prototype.bind.apply(this.method,[this.object].concat(this.fixedArgs))};
 	callback.fire = function(){
-		return this.method.apply(this.object,(this.fixedArgs || []).concat(Array.prototype.slice.call(arguments)))
+		return this.method.apply(this.object,this.fixedArgs.concat(Array.prototype.slice.call(arguments)))
 	};
 
 	return callback;

@@ -66,23 +66,18 @@
 
 	_DEBUG = false;
 	
-	function debug(txt,toConsole)
+	function debug(txt)
 	{
-		document.getElementById('debug').innerHTML = document.getElementById('debug').innerHTML+'<span>'+(
-				typeof(txt)!='string' ? 
-					JSON.stringify(txt) : 
-					txt
-			)+'</span>';
-		if(toConsole && console && typeof(console.info) == 'function')
-			console.info(txt);
+		document.getElementById('debug').innerHTML += ' ' + (this ? this : txt);
 	}
 
 
 	function loadTest()
 	{
-		Iterator.foreach(Range.of.Chars('a','z'),function(){
-			debug(this);
-		});
+		foreach(
+			Odd(Reverse(Iterator.for(Range.of.Chars('a','z')))),
+			debug
+		);
 	}
 	</script>
 
