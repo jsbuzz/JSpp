@@ -253,7 +253,7 @@ Class.prototype.super = function()
 /** ******************************************************************************************************************** Class::instanceOf and Class.prototype::instanceOf
 * This is the replacement for the native instanceof operator.
 */
-Class.instanceOf = function(child,parent){return Class.prototype.instanceOf.call(child,parent)};
+var instanceOf = Class.instanceOf = function(child,parent){return Class.prototype.instanceOf.call(child,parent)};
 Class.prototype.instanceOf = function(parent){
 
 	if(this instanceof parent || this.constructor===parent)
@@ -264,8 +264,7 @@ Class.prototype.instanceOf = function(parent){
 
 	var constructors = parent._constructors || [parent];
 
-	j = 0;
-	for(var i=0;i<this.constructor._constructors.length;i++)
+	for(var i=0,j=0;i<this.constructor._constructors.length;i++)
 	{
 		if(this.constructor._constructors[i]==constructors[j])
 		{
@@ -275,7 +274,7 @@ Class.prototype.instanceOf = function(parent){
 			return false;
 	}
 
-	return true;
+	return false;
 };
 
 
