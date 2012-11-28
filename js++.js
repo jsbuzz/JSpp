@@ -1,5 +1,5 @@
 /**
- * js++ 1.0 [2012.10.07.]
+ * js++ 0.9 [2012.10.07.]
  *
  * JavaScript OOP extension
  * Key Features:

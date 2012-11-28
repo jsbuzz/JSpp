@@ -23,19 +23,19 @@
 			this.children = [];
 			
 			// protected node
-			var protected = this.protected({
+			this.protected({
 				node : typeof(tag)=='string' ? $('<'+tag+'>'+(text || '')+'</'+tag+'>') : $(tag),
 			});
 			
-			protected.node.data('DOMNode',this);
+			this.protected.node.data('DOMNode',this);
 
 			// set attributes
 			for(var i in attributes)
-				protected.node.attr(i,attributes[i]);
+				this.protected.node.attr(i,attributes[i]);
 
 			// protected node getter
 			this.node = function(){
-				return protected.node;
+				return this.protected.node;
 			};
 
 			// show()
@@ -46,11 +46,11 @@
 
 			// append(newNode)
 			this.append = function(newNode){
-				if(!Class.instanceOf(newNode,DOMNode))
+				if(!instanceOf(newNode,DOMNode))
 					throw new Error("DOMNode::append requires parameter to be DOMNode");
 
 				this.children.push(newNode);
-				protected.node.append(newNode.protected.node);
+				this.protected.node.append(newNode.protected.node);
 
 				return this;
 			};

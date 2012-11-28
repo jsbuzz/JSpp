@@ -170,12 +170,12 @@
 			{
 				infinitum.current().style.backgroundColor = colorIterator.current();
 				colorIterator.next();
-				blink.timer = window.setTimeout("blink()",50);
+				blink.timer = setTimeout(blink,50);
 			}else{
 				colorIterator.rewind();
 				infinitum.current().style.backgroundColor = '';
 				infinitum.next();
-				blink.timer = window.setTimeout("blink()",150);
+				blink.timer = setTimeout(blink,150);
 			}
 		};
 	}
@@ -195,12 +195,12 @@
 		{
 			infinitum.current().style.backgroundColor = colorIterator.current();
 			colorIterator.next();
-			blink.timer = window.setTimeout("blink()",50);
+			blink.timer = setTimeout(blink,50);
 		}else{
 			colorIterator.rewind();
 			infinitum.current().style.backgroundColor = '';
 			infinitum.next();
-			blink.timer = window.setTimeout("blink()",150);
+			blink.timer = setTimeout(blink,150);
 		}
 	};
 	</pre>
