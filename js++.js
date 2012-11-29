@@ -14,7 +14,9 @@
  *	- supports all types of constructor functions
  *	- readable syntax
  *
- * @author Matyas Buczko matyas.buczko@gmail.com
+ * @author Matyas Buczko (matyas.buczko@gmail.com)
+ * Copyright (c) 2012 Matyas Buczko (matyas.buczko@gmail.com)
+ * Released under MIT license.
  */
 
 
