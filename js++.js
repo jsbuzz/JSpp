@@ -1,7 +1,7 @@
 /**
  * js++ 0.9 [2012.10.07.]
  *
- * JavaScript OOP extension
+ * JavaScript OOP extension for browsers and Node.js
  * Key Features:
  *	- class inheritance
  *	- multiple ancestors
@@ -544,4 +544,24 @@ Class.interface.check = function(throwException){
 		}
 	}
 	return true;
+}
+
+
+
+/** ******************************************************************************************************************** Node.js
+* 
+*/
+if(typeof(module)=='object')
+{
+	module.exports = Class;
+
+	Class.__dirname = __dirname;
+	Class.load = function(module,context){
+		typeof context=='object' || (context=global);
+		var tmp = require(this.__dirname+'/'+module);
+		for(var i in tmp)
+			context[i] = tmp[i];
+	};
+	global.JSpp = Class;
+	global.instanceOf = instanceOf;
 }

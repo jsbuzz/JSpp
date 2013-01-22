@@ -1,3 +1,11 @@
+	/** **************************************************************************************************************** ++ dependecies - Node.js ++
+	* dependecies - Node.js
+	*/
+	if(typeof(require)=='function')
+	{
+		var Class = JSpp || require('JSpp');
+		var ReversibleIterator = require('./iterators.js').ReversibleIterator;
+	}
 
 	/** **************************************************************************************************************** Range
 	* class Range
@@ -34,7 +42,7 @@
 
 
 	/** **************************************************************************************************************** Range.Item
-	* class Range.Item
+	* abstract class Range.Item
 	*/
 	Range.Item = Class.interface(
 		'index',
@@ -98,3 +106,15 @@
 		this.rewind();
 	
 	}.inherits(ReversibleIterator);
+
+
+
+	/** **************************************************************************************************************** ++ Node.js ++
+	*/
+	if(typeof(module)=='object')
+	{
+		module.exports = {
+			Range         : Range,
+			RangeIterator : RangeIterator
+		};
+	}

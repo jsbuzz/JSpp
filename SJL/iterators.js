@@ -1,4 +1,6 @@
-		
+	if(typeof(require)=='function')
+		var Class = JSpp || require('JSpp');
+
 	/** **************************************************************************************************************** Iterator
 	* Iterator interface
 	*/
@@ -408,3 +410,32 @@
 
 		return instance;
 	};
+
+
+
+
+	/** **************************************************************************************************************** ++ Node.js ++
+	* 
+	*/
+	if(typeof(module)=='object')
+	{
+		module.exports = {
+			Iterator               : Iterator,
+			ReversibleIterator     : ReversibleIterator,
+			ArrayIterator          : ArrayIterator,
+			ObjectIterator         : ObjectIterator,
+			FilteredObjectIterator : FilteredObjectIterator,
+			DOM_Iterator           : DOM_Iterator,
+			TAG_Iterator           : TAG_Iterator,
+			MethodIterator         : MethodIterator,
+			PropertyIterator       : PropertyIterator,
+
+			Infinite               : Infinite,
+			Odd                    : Odd,
+			Even                   : Even,
+			Reverse                : Reverse,
+
+			foreach                : Iterator.foreach.bind(Iterator)
+
+		};
+	}
