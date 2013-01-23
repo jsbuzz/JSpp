@@ -4,6 +4,7 @@ JavaScript OOP extension
  + class inheritance
  + multiple ancestors
  + unlimited inheritance chain
+ + works both in **browsers** and **Node.js**
  + fast built-in **instanceof** support
  + **short construction time** [less object merging and more **real inheritance**]
  + access all ancestors' methods with **this.super() function**

@@ -417,7 +417,7 @@
 	/** **************************************************************************************************************** ++ Node.js ++
 	* 
 	*/
-	if(typeof(module)=='object')
+	if(JSpp.isNodeJS)
 	{
 		module.exports = {
 			Iterator               : Iterator,

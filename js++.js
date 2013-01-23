@@ -1,5 +1,5 @@
 /**
- * js++ 0.9 [2012.10.07.]
+ * js++ 0.95 [2013.01.23.]
  *
  * JavaScript OOP extension for browsers and Node.js
  * Key Features:
@@ -15,7 +15,7 @@
  *	- readable syntax
  *
  * @author Matyas Buczko (matyas.buczko@gmail.com)
- * Copyright (c) 2012 Matyas Buczko (matyas.buczko@gmail.com)
+ * Copyright (c) 2013 Matyas Buczko (matyas.buczko@gmail.com)
  * Released under MIT license.
  */
 
@@ -551,7 +551,7 @@ Class.interface.check = function(throwException){
 /** ******************************************************************************************************************** Node.js
 * 
 */
-if(typeof(module)=='object')
+if(typeof(module)=='object' && module.exports)
 {
 	module.exports = Class;
 
@@ -562,6 +562,9 @@ if(typeof(module)=='object')
 		for(var i in tmp)
 			context[i] = tmp[i];
 	};
+
+	// to global scope (?)
 	global.JSpp = Class;
 	global.instanceOf = instanceOf;
+	Class.isNodeJS = true;
 }
