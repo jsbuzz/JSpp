@@ -33,6 +33,10 @@
 			return this.min.create(this.min.index() + index);
 		},
 
+		distance : function(){
+			return this.max.index() - this.min.index();
+		},
+
 		contains : function(element){
 			return (Class.instanceOf(element,Range.Item) || (element = this.min.instance(element))) && element.index() <= this.max.index() && element.index() >= this.min.index();
 		},

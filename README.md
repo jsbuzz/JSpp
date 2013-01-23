@@ -31,3 +31,36 @@ Find full examples in the demo folder
 		}
 	})
 	.inherits(Iterator);
+
+Node.js example
+
+	require('../JSpp/jspp.compressed.js');
+
+	JSpp.load('SJL/iterators.js');
+	JSpp.load('SJL/range.js');
+
+	String.prototype.repeat = function( num )
+	{
+	    return new Array( num + 1 ).join( this );
+	}
+
+	var range = Range.of.Chars('A','z'),
+		left  = Odd(Iterator.for(range)),
+		right = Even(Iterator.for(range)),
+		i = 0, 
+		max = range.distance();
+
+	while(left.valid() || right.valid())
+	{
+		if(left.valid())
+		{
+			console.info(' '.repeat(i)+left.current());
+			left.next();
+		}
+		if(right.valid())
+		{
+			console.info(' '.repeat(max-i)+right.current());
+			right.next();
+		}
+		i+=2;
+	}
