@@ -18,3 +18,25 @@ foreach(
 	function(it,n){
 		console.info(' '.repeat(n)+this);
 	});
+
+/*
+# Output should be:
+
+1
+ 2
+  3
+a
+ c
+  e
+   g
+    i
+     k
+      m
+       o
+        q
+         s
+          u
+           w
+            y
+
+*/
