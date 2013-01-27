@@ -102,6 +102,13 @@
 	var $  = DOM.Element,
 	    $$ = DOM.query;
 
+	var objectID = function(obj){
+		var id = obj.__id || (obj.__id = ++objectID._current);
+		return (objectID[id] = obj) && id;
+	};
+	objectID._current = Date.now();
+	objectID.from = function(id){return objectID[id]};
+
 	function fixEvent(event,target)
 	{
 		if(navigator.userAgent.indexOf('Firefox')>0)
