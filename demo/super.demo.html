@@ -134,6 +134,22 @@ var Callback = function(object,method,args){
 				this.setMyVariables(a,b,c);
 	},"(a,b,c)=>B()");
 
+	
+	var X = Class(function(){
+		this.method = function(p){
+			console.info('X');
+			return p;
+		};
+	});
+
+	var XX = function(){
+		this.method = function(p){
+			console.info('XX');
+			return 1+this.super('method',p);
+		}
+	}.inherits(X);
+
+	var FX = function(){}.inherits(XX);
 
 
 	// extend showOff :)

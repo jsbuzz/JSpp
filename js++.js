@@ -122,19 +122,33 @@ Class.applyTo = function(object)
 {
 	var args = Array.prototype.slice.call(arguments,1),
 	    paramChannels = this._paramChannels || [],
-		constructor = object.constructor || this;
+		originalConstructor = object.constructor || this,
+		constructors = this._constructors || [this];
 
 	var paramMap = new Array(paramChannels.length+1);
 	paramMap[paramChannels.length] = args;
 	for(var i=paramChannels.length-1;i>=0;i--)
 		paramMap[i] = paramChannels[i].apply(null,paramMap[paramChannels[i].parent]);
 
-	for(var i=0;i < this._constructors.length;i++)
+	for(var i=0;i < constructors.length;i++)
 	{
-		object.constructor = this._constructors[i]._caller || this._constructors[i];
-		Class._applyConstructor(this._constructors[i],object,paramMap[i],constructor);
+		object.originalConstructor = constructors[i]._caller || constructors[i];
+		Class._applyConstructor(constructors[i],object,paramMap[i],originalConstructor);
 	}
-	object.constructor = constructor;
+	object.constructor = originalConstructor;
+/*	if(this._supers && originalConstructor!=this)
+	{
+		originalConstructor._supers || (originalConstructor._supers = []);
+		var oLength = originalConstructor._supers.length;
+		for(var i=0;i<this._supers.length)
+		{
+			var found = 0;
+			for(var j=0;j<oLength;j++)
+			{
+				if(originalConstructor._supers);
+			}
+		}
+	}*/
 
 	return object;
 }
@@ -203,6 +217,27 @@ Class._inherits = function(child,parent)
 	}
 }
 
+Class.findMethodParent = function(owner,methodName){
+
+	var step = 1;
+	while(step && owner && owner._supers)
+	{
+		step = 0;
+		for(var i=0;i<owner._supers.length;i++)
+		{
+			if(owner._supers[i]._instance && owner._instance[methodName].toString() == owner._supers[i]._instance[methodName].toString())
+			{
+				console.info('step up with '+methodName);
+				owner = owner._supers[i];
+				step++;
+				break;
+			}
+		}
+	}
+
+	return owner;
+};
+
 
 /** ******************************************************************************************************************** Class.prototype::super
 * access to the super class' methods (only the methods not the properties!)
@@ -235,7 +270,8 @@ Class.prototype.super = function()
 			if(typeof(this.constructor._supers[i])!=='undefined' && typeof(fn = this.constructor._supers[i]._instance[fn])=='function' || typeof(this.constructor._supers[i]._prototype)!=='undefined' && typeof(fn = this.constructor._supers[i]._prototype.prototype[fn])=='function')
 			{
 				var savedConstructor = this.constructor;
-				this.constructor = this.constructor._supers[i]; // step up in hierarchy
+				this.constructor = Class.findMethodParent(this.constructor._supers[i],arguments[0]);
+				//this.constructor = this.constructor._supers[i]; // step up in hierarchy
 				var returnValue = fn.apply(this,args);
 				this.constructor = savedConstructor; // step back
 				return returnValue;
@@ -554,6 +590,7 @@ Class.interface.check = function(throwException){
 if(typeof(module)=='object' && module.exports)
 {
 	module.exports = Class;
+	Class.isNodeJS = true;
 
 	Class.__dirname = __dirname;
 	Class.load = function(module,context){
@@ -566,5 +603,4 @@ if(typeof(module)=='object' && module.exports)
 	// to global scope (?)
 	global.JSpp = Class;
 	global.instanceOf = instanceOf;
-	Class.isNodeJS = true;
 }
