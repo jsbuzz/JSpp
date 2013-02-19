@@ -94,21 +94,21 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 		paramMap[i] = paramChannels[i].apply(child._caller,paramMap[paramChannels[i].parent]);
 
 	var lastState = {},
-	    logStates = typeof(child._caller._instance)==='undefined' ? function(){  // this function will fill the _ownMethods for
-	    	child._caller._instance.constructor._ownMethods || (child._caller._instance.constructor._ownMethods = new constructor);
-	    	child._caller._instance.constructor._inheritedMethods || (child._caller._instance.constructor._inheritedMethods = {});
-			for(var m in child._caller._instance)
+	    logStates = typeof(child._caller._instance)==='undefined' ? function(instance){  // this function will fill the _ownMethods for
+	    	instance.constructor._ownMethods || (instance.constructor._ownMethods = new constructor);
+	    	instance.constructor._inheritedMethods || (instance.constructor._inheritedMethods = {});
+			for(var m in instance)
 			{
-				if(m!='constructor' && typeof(child._caller._instance[m])=='function')
+				if(m!='constructor' && typeof(instance[m])=='function')
 				{
-					if((typeof(lastState[m])=='undefined' || lastState[m].method!=child._caller._instance[m]))
+					if((typeof(lastState[m])=='undefined' || lastState[m].method!=instance[m]))
 					{
-						child._caller._instance.constructor._ownMethods[m] = m;
+						instance.constructor._ownMethods[m] = m;
 						lastState[m] || (lastState[m] = {});
-						lastState[m].originator = child._caller._instance.constructor;
+						lastState[m].originator = instance.constructor;
 					}
 					else if(typeof(lastState[m])!='undefined')
-						child._caller._instance.constructor._inheritedMethods[m] = lastState[m].originator;
+						instance.constructor._inheritedMethods[m] = lastState[m].originator;
 
 				}
 				lastState[m] || (lastState[m] = {});
@@ -124,12 +124,12 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 		child._caller._instance.constructor = child._caller._constructors[i]._caller || child._caller._constructors[i];
 		Class._applyConstructor(parents[i],child._caller._instance,paramMap[i],constructor,logStates,lastState);
 		
-		logStates && logStates();
+		logStates && logStates(child._caller._instance);
 	}
 	child._caller._instance.constructor = child._caller;
 	Class._applyConstructor(child,child._caller._instance,args,constructor);
 
-	logStates && logStates();
+	logStates && logStates(child._caller._instance);
 
 	/* this will be used in the future
 	if(child._caller._ready)
