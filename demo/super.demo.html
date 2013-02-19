@@ -86,6 +86,8 @@ var Callback = function(object,method,args){
 				this.a = a;
 			};
 
+			this.methodOfA = function(){};
+
 			if(a!==undefined)
 				this.setMyVariables(a);
 	};
@@ -106,7 +108,9 @@ var Callback = function(object,method,args){
 				this.super('setMyVariables',a);
 				this.b = b;
 			};
-			
+
+			this.methodOfB = function(){};
+		
 			if(a!==undefined)
 				this.setMyVariables(a,b);
 	},"(a,b)=>A()");
@@ -129,6 +133,8 @@ var Callback = function(object,method,args){
 				this.super('setMyVariables',a,b);
 				this.c = c;
 			};
+
+			this.methodOfC = function(){};
 			
 			if(a!==undefined)
 				this.setMyVariables(a,b,c);

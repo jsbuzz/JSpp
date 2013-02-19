@@ -93,15 +93,43 @@ Class._constructor = function(child,parents,constructor,paramChannels)
 	for(var i=paramChannels.length-1;i>=0;i--)
 		paramMap[i] = paramChannels[i].apply(child._caller,paramMap[paramChannels[i].parent]);
 
+	var lastState = {},
+	    logStates = typeof(child._caller._instance)==='undefined' ? function(){  // this function will fill the _ownMethods for
+	    	child._caller._instance.constructor._ownMethods || (child._caller._instance.constructor._ownMethods = new constructor);
+	    	child._caller._instance.constructor._inheritedMethods || (child._caller._instance.constructor._inheritedMethods = {});
+			for(var m in child._caller._instance)
+			{
+				if(m!='constructor' && typeof(child._caller._instance[m])=='function')
+				{
+					if((typeof(lastState[m])=='undefined' || lastState[m].method!=child._caller._instance[m]))
+					{
+						child._caller._instance.constructor._ownMethods[m] = m;
+						lastState[m] || (lastState[m] = {});
+						lastState[m].originator = child._caller._instance.constructor;
+					}
+					else if(typeof(lastState[m])!='undefined')
+						child._caller._instance.constructor._inheritedMethods[m] = lastState[m].originator;
+
+				}
+				lastState[m] || (lastState[m] = {});
+				lastState[m].method = child._caller._instance[m];
+			}
+
+	    } : false;
+
 	child._caller._instance = new constructor; // double profit: GC won't delete the instance 
 	                                          // and the super method will use the last one
 	for(var i=0;i<parents.length;i++)
 	{
 		child._caller._instance.constructor = child._caller._constructors[i]._caller || child._caller._constructors[i];
-		Class._applyConstructor(parents[i],child._caller._instance,paramMap[i],constructor);
+		Class._applyConstructor(parents[i],child._caller._instance,paramMap[i],constructor,logStates,lastState);
+		
+		logStates && logStates();
 	}
 	child._caller._instance.constructor = child._caller;
 	Class._applyConstructor(child,child._caller._instance,args,constructor);
+
+	logStates && logStates();
 
 	/* this will be used in the future
 	if(child._caller._ready)
