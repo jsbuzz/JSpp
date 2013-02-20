@@ -281,20 +281,20 @@
 		this.seekTag = function(){
 			while(this.protected.current && this.protected.current.tagName!=this.protected.tagName)
 			{
-				this.super('next'); // call DOM_Iterator::next()
+				this.super(DOM_Iterator,'next'); // call DOM_Iterator::next()
 			}
 			return this;
 		};
 		
 		// rewind needs a seekTag
 		this.rewind = function(){
-			this.super('rewind'); // call DOM_Iterator::rewind()
+			this.super(DOM_Iterator,'rewind'); // call DOM_Iterator::rewind()
 			return this.seekTag();
 		};
 		
 		// next needs a seekTag
 		this.next = function(){
-			this.super('next'); // call DOM_Iterator::next()
+			this.super(DOM_Iterator,'next'); // call DOM_Iterator::next()
 			return this.seekTag();
 		};
 		

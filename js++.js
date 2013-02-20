@@ -267,49 +267,28 @@ Class.findMethodParent = function(owner,methodName){
 };
 
 
+
 /** ******************************************************************************************************************** Class.prototype::super
 * access to the super class' methods (only the methods not the properties!)
 */
-Class.prototype.super = function()
+Class.prototype.super = function(superClass,method)
 {
 	if(!this.constructor._supers)
 		throw new Error("I have no superclass!");
+
+	superClass._instance || (superClass._instance = new superClass);
+
+	var args = Array.prototype.slice.call(arguments,2),
+	    fn = superClass._instance[method];
 	
-	// Interpret the 'Class::method' nice format
-	var t,parentClass = false;
-	if(typeof(arguments[0])=='string' && (t=arguments[0].split('::')).length > 1)
+	if(typeof(fn)=='function')
 	{
-		arguments[0] = t[1];
+		var savedConstructor = this.constructor;
+		this.constructor = superClass;
+		var r = fn.apply(this,args);
+		this.constructor = savedConstructor;
 
-		if(!this.constructor._classNames || typeof(parentClass = this.constructor._classNames[t[0]])=='undefined')
-			throw new Error("superclass '"+t[0]+"' not found");
-	}
-		
-	for(var i=0; i <  this.constructor._supers.length; i++)
-	{
-		if(parentClass!==false)
-			i = parentClass;
-
-		this.constructor._supers[i]._instance || (this.constructor._supers[i]._instance = new this.constructor._supers[i]);
-		
-		if(arguments.length)
-		{
-			var fn = arguments[0],args = Array.prototype.slice.call(arguments,1);
-			if(typeof(this.constructor._supers[i])!=='undefined' && typeof(fn = this.constructor._supers[i]._instance[fn])=='function' || typeof(this.constructor._supers[i]._prototype)!=='undefined' && typeof(fn = this.constructor._supers[i]._prototype.prototype[fn])=='function')
-			{
-				var savedConstructor = this.constructor;
-				this.constructor = Class.findMethodParent(this.constructor._supers[i],arguments[0]);
-				//this.constructor = this.constructor._supers[i]; // step up in hierarchy
-				var returnValue = fn.apply(this,args);
-				this.constructor = savedConstructor; // step back
-				return returnValue;
-			}
-		}
-		else
-			return this.constructor._supers[i]._instance; // direct access... Do I really want it? It returns with the first one
-
-		if(parentClass!==false)
-			return false;
+		return r;
 	}
 	return false;
 };

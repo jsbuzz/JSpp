@@ -46,7 +46,7 @@
 			
 			this.publicFunction = function(x){
 				console.info('B::publicFunction('+Array.prototype.join.call(arguments)+')');
-				return this.super('publicFunction')+x;
+				return this.super(A,'publicFunction')+x;
 			};
 	},"(b,a)=>A(a)"); // calls the superconstructor with the second parameter
 	                  // If this param binding is not set, all params are sent to the superconstructor
@@ -80,8 +80,8 @@
 			return { // this kind of scoping is supported as well, but it needs mergeing in construction time.
 				publicFunction : function(x){
 					console.info('ABX::publicFunction('+Array.prototype.join.call(arguments)+')');
-					return this.super('B::publicFunction',x)
-					       + this.super('X::publicFunction')
+					return this.super(B,'publicFunction',x)
+					       + this.super(X,'publicFunction')
 						   + this.getP();
 				},
 
@@ -104,7 +104,7 @@
 			_DEBUG && console.info('FIX::constructor('+Array.prototype.join.call(arguments)+')');
 			this.dynamic = dynamic;
 			
-			this.publicFunction = function(x){console.info('FIX::publicFunction('+Array.prototype.join.call(arguments)+')');return this.super('publicFunction',x||1)+1};
+			this.publicFunction = function(x){console.info('FIX::publicFunction('+Array.prototype.join.call(arguments)+')');return this.super(ABX,'publicFunction',x||1)+1};
 	}.inherits(
 		ABX,"=>(1,2,3)"); // calls the superconstructor with fix parameters
 

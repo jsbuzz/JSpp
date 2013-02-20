@@ -105,7 +105,7 @@ var Callback = function(object,method,args){
 				if(_DEBUG && !A._instance)
 					debug('-- creating A._instance --');
 
-				this.super('setMyVariables',a);
+				this.super(A,'setMyVariables',a);
 				this.b = b;
 			};
 
@@ -130,7 +130,7 @@ var Callback = function(object,method,args){
 				if(_DEBUG && !B._instance)
 					debug('-- creating B._instance --');
 
-				this.super('setMyVariables',a,b);
+				this.super(B,'setMyVariables',a,b);
 				this.c = c;
 			};
 
@@ -151,7 +151,7 @@ var Callback = function(object,method,args){
 	var XX = function(){
 		this.method = function(p){
 			console.info('XX');
-			return 1+this.super('method',p);
+			return 1 + this.super(X,'method',p);
 		}
 	}.inherits(X);
 
